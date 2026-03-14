@@ -26,7 +26,7 @@ public class ClaudeServerApplication {
         SpringApplication.run(ClaudeServerApplication.class, args);
         
         System.out.println("✅ Claude Code Server 启动完成!");
-        System.out.println("🌐 API文档地址: http://localhost:8080/docs");
+        System.out.println("🌐 API文档地址: http://localhost:8080/doc.html");
         System.out.println("📊 监控地址: http://localhost:8080/actuator/health");
     }
 }
