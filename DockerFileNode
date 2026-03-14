@@ -1,34 +1,87 @@
-
 # Base image
-FROM harbor.goodluck.net/s04089-public/maven:3.9.6-jdk21-it
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
  less \
  procps \
- sudo \
  fzf \
- man-db \
  unzip \
  jq \
  nano \
  vim \
  xz-utils \
- zsh \
+ wget \
+ ca-certificates \
+ git \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# ============================================
+# Install JDK 8 and 17
+# ============================================
+RUN mkdir -p /opt/java
+
+# JDK 8 (Eclipse Temurin)
+RUN wget -t 5 --waitretry=5 -O /tmp/jdk8.tar.gz \
+    https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u412-b08/OpenJDK8U-jdk_x64_linux_hotspot_8u412b08.tar.gz && \
+    tar -xzf /tmp/jdk8.tar.gz -C /opt/java && \
+    mv /opt/java/jdk8u412-b08 /opt/java/jdk8 && \
+    rm /tmp/jdk8.tar.gz
+
+# JDK 17 (Eclipse Temurin)
+RUN wget -t 5 --waitretry=5 -O /tmp/jdk17.tar.gz \
+    https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.12%2B7/OpenJDK17U-jdk_x64_linux_hotspot_17.0.12_7.tar.gz && \
+    tar -xzf /tmp/jdk17.tar.gz -C /opt/java && \
+    mv /opt/java/jdk-17.0.12+7 /opt/java/jdk17 && \
+    rm /tmp/jdk17.tar.gz
+
+# Set JDK 17 as default
+ENV JAVA_HOME=/opt/java/jdk17
+ENV PATH=$JAVA_HOME/bin:$PATH
+
+# ============================================
+# Install Maven 3.8
+# ============================================
+RUN wget -t 5 --waitretry=5 -O /tmp/maven.tar.gz \
+    https://archive.apache.org/dist/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz && \
+    tar -xzf /tmp/maven.tar.gz -C /opt && \
+    ln -sf /opt/apache-maven-3.8.8/bin/mvn /usr/bin/mvn && \
+    rm /tmp/maven.tar.gz
+
+ENV MAVEN_HOME=/opt/apache-maven-3.8.8
+ENV PATH=$MAVEN_HOME/bin:$PATH
 
 COPY maven/conf/settings.xml /root/.m2/settings.xml
 
-# Copy and install Node.js 20 from local binary files
-COPY maven/node-v20.19.5-linux-x64.tar.xz /node/node-v20.19.5-linux-x64.tar.xz
+# ============================================
+# Install Node.js 22
+# ============================================
+RUN wget -t 5 --waitretry=5 -O /tmp/node.tar.xz \
+    https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz && \
+    tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 --no-same-owner && \
+    ln -sf /usr/local/bin/node /usr/bin/node && \
+    ln -sf /usr/local/bin/npm /usr/bin/npm && \
+    ln -sf /usr/local/bin/npx /usr/bin/npx && \
+    rm /tmp/node.tar.xz
 
-RUN tar -xJf /node/node-v20.19.5-linux-x64.tar.xz -C /usr/local --strip-components=1 --no-same-owner && \
-    rm /node/node-v20.19.5-linux-x64.tar.xz && \
-    ln -s /usr/local/bin/node /usr/bin/node && \
-    ln -s /usr/local/bin/npm /usr/bin/npm && \
-    ln -s /usr/local/bin/npx /usr/bin/npx
+RUN npm install -g @anthropic-ai/claude-code@2.1.63
 
-RUN npm config set registry http://npm.goodluck.net/
-RUN npm install -g @anthropic-ai/claude-code@2.0.37
+# ============================================
+# Helper scripts for switching versions
+# ============================================
+RUN echo '#!/bin/bash\n\
+use-java() {\n\
+  case "$1" in\n\
+    8)  export JAVA_HOME=/opt/java/jdk8 ;;\n\
+    17) export JAVA_HOME=/opt/java/jdk17 ;;\n\
+    *)  echo "Usage: use-java [8|17]"; return 1 ;;\n\
+  esac\n\
+  export PATH=$JAVA_HOME/bin:$PATH\n\
+  echo "Switched to Java $1: $(java -version 2>&1 | head -1)"\n\
+}' > /etc/profile.d/version-switcher.sh && chmod +x /etc/profile.d/version-switcher.sh
 
-CMD [ "zsh" ]
+RUN echo 'source /etc/profile.d/version-switcher.sh' >> /root/.bashrc
+
+CMD [ "bash" ]
