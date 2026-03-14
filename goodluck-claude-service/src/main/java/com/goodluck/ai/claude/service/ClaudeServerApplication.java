@@ -20,7 +20,7 @@ public class ClaudeServerApplication {
 
     public static void main(String[] args) {
         System.out.println("🚀 启动 Claude Code Server (Spring Boot版)...");
-        System.out.println("📚 API文档将在启动后访问: http://localhost:8080/docs");
+        System.out.println("📚 API文档将在启动后访问: http://localhost:8080/doc.html");
         System.out.println("🔍 健康检查地址: http://localhost:8080/api/health");
         
         SpringApplication.run(ClaudeServerApplication.class, args);
