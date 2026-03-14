@@ -1,4 +1,4 @@
-FROM harbor.goodluck.net/goodluck-public/java-node-mvn-claude:jdk21-node20-1213
+FROM liuroy/goodluck-claude-base:latest
 
 # 创建 goodluckjava 用户
 RUN groupadd -r goodluckjava && \
@@ -12,7 +12,7 @@ ADD maven/conf/settings.xml /home/goodluckjava/.m2/settings.xml
 
 # Add application jar
 
-ADD ai-coding-claude-service/target/bootstrap.jar /deployments/app.jar
+ADD goodluck-claude-service/target/bootstrap.jar /deployments/app.jar
 
 COPY run /opt/run-java
 # 添加启动脚本
