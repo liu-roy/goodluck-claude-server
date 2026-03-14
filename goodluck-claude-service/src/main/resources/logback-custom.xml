@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration packagingData="true">
+    <property name="LOG_HOME" value="${user.home}/item/logs"/>
+    <property name="FILE_APPLICATION" value="${LOG_HOME}/application.log"/>
+    <property name="COMMON_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{TRACE_ID}] [%thread] %logger{50} - %msg%n"/>
+
+    <!-- =============================================all log============================================= -->
+    <appender name="APPLICATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${FILE_APPLICATION}</file>
+        <encoder>
+            <pattern>${COMMON_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${FILE_APPLICATION}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- each file should be at most ${maxFileSize}, keep ${maxHistory} days worth of history, but at most ${totalSizeCap} -->
+            <maxFileSize>2GB</maxFileSize>
+            <maxHistory>14</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ASYNC_APPLICATION" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- The maximum capacity of the ArrayBlockingQueue. default 256 -->
+        <queueSize>2048</queueSize>
+        <!-- by default queueSize*20% remaining, will discard events of level TRACE, DEBUG and INFO,
+            keeping only events of level WARN and ERROR. To keep all events, set discardingThreshold to 0 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- a maximum queue flush timeout in milliseconds. Events that cannot be processed within this window are discarded.
+            maxFlushTime = 0 means AsyncAppender always wait until worker thread to complete flush queue -->
+        <maxFlushTime>0</maxFlushTime>
+        <includeCallerData>true</includeCallerData>
+        <!-- target appender，only define one -->
+        <appender-ref ref="APPLICATION"/>
+    </appender>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>${COMMON_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- ============================================root log============================================ -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_APPLICATION"/>
+    </root>
+    <logger name="ShardingSphere-SQL" level="WARN" />
+
+
+</configuration>

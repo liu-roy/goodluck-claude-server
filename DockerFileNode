@@ -1,0 +1,34 @@
+
+# Base image
+FROM harbor.goodluck.net/s04089-public/maven:3.9.6-jdk21-it
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+ less \
+ procps \
+ sudo \
+ fzf \
+ man-db \
+ unzip \
+ jq \
+ nano \
+ vim \
+ xz-utils \
+ zsh \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+COPY maven/conf/settings.xml /root/.m2/settings.xml
+
+# Copy and install Node.js 20 from local binary files
+COPY maven/node-v20.19.5-linux-x64.tar.xz /node/node-v20.19.5-linux-x64.tar.xz
+
+RUN tar -xJf /node/node-v20.19.5-linux-x64.tar.xz -C /usr/local --strip-components=1 --no-same-owner && \
+    rm /node/node-v20.19.5-linux-x64.tar.xz && \
+    ln -s /usr/local/bin/node /usr/bin/node && \
+    ln -s /usr/local/bin/npm /usr/bin/npm && \
+    ln -s /usr/local/bin/npx /usr/bin/npx
+
+RUN npm config set registry http://npm.goodluck.net/
+RUN npm install -g @anthropic-ai/claude-code@2.0.37
+
+CMD [ "zsh" ]
