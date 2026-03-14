@@ -1,0 +1,39 @@
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Claude ###
+.claude/
+
+### macOS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### Maven ###
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Logs ###
+*.log
+logs/
+
+### Build outputs ###
+*.jar
+!maven/**/*.jar
+run/developments/
+
+### Large binary files ###
+*.tar.xz
+*.tar.gz
+
+### Environment ###
+.env
+.env.local
+

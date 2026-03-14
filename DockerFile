@@ -1,0 +1,35 @@
+FROM harbor.goodluck.net/goodluck-public/java-node-mvn-claude:jdk21-node20-1213
+
+# 创建 goodluckjava 用户
+RUN groupadd -r goodluckjava && \
+    useradd -r -g goodluckjava -d /home/goodluckjava -m -s /bin/bash goodluckjava
+
+# 创建 Maven 配置目录
+RUN mkdir -p /home/goodluckjava/.m2
+
+# 拷贝 Maven settings.xml
+ADD maven/conf/settings.xml /home/goodluckjava/.m2/settings.xml
+
+# Add application jar
+
+ADD ai-coding-claude-service/target/bootstrap.jar /deployments/app.jar
+
+COPY run /opt/run-java
+# 添加启动脚本
+# Set environment variables
+ENV LANG=C.utf8
+ENV LC_ALL=C.utf8
+ENV TZ=Asia/Shanghai
+
+# 修改目录权限，确保 goodluckjava 有访问权
+RUN chown -R goodluckjava:goodluckjava /home/goodluckjava /deployments /opt/run-java && \
+    chmod +x /opt/run-java/run-java.sh && \
+    chmod +x /opt/run-java/run-env.sh
+
+
+# Expose port
+EXPOSE 8080
+
+USER goodluckjava
+
+ENTRYPOINT [ "/opt/run-java/run-java.sh" ]

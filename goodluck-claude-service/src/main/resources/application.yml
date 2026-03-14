@@ -1,0 +1,118 @@
+spring:
+  application:
+    name: claude-server
+  profiles:
+    active: dev
+
+
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  tomcat:
+    uri-encoding: UTF-8
+    threads:
+      max: 200
+      minSpare: 10
+    connection-timeout: 20000
+
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.baomidou.mybatisplus: DEBUG
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
+
+
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: info,health,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+
+
+swagger:
+  enabled: true
+  scan-package: com.goodluck.checkin
+
+
+
+# Claude配置
+claude:
+  executable: claude
+  workspace-dir: /Users/tom/Documents/worksapce/goodluck/cloneDir
+  timeout: 900  # 10分钟超时
+  max-concurrent-processes: 5
+  proxy:
+    enabled: true
+    http: http://127.0.0.1:7897
+    https: http://127.0.0.1:7897
+    socks: socks5://127.0.0.1:7897
+  claudeImplTodoPrompt: classpath:prompts/claude-serviceimpl-todo.md
+  claudeGenerateSqlPrompt: classpath:prompts/claude-generate-sql.md
+  enableThirdModel: true
+  thirdModelType: claude
+#  apiKey: changeme-replace-via-env-or-secrets
+#  baseUrl: https://dashscope.aliyuncs.com/apps/anthropic
+#  model: qwen3-coder-plus
+#  fastModel: qwen3-coder-plus
+  apiKey: changeme-replace-via-env-or-secrets
+  baseUrl: https://4sapi.com
+  model: claude-opus-4-6
+  fastModel: claude-opus-4-6
+
+
+
+# GitLab配置
+gitlab:
+  # GitLab服务器地址
+  host: https://hgit.goodluck.net/
+  # GitLab访问令牌（请通过环境变量 GITLAB_ACCESS_TOKEN 配置）
+  access-token: ${GITLAB_ACCESS_TOKEN:}
+  # 默认组ID
+  default-group-id: 14152
+  # Webhook是否启用SSL
+  webhook-enable-ssl: true
+  # 推送事件处理配置
+  push-event-handle-enabled: false
+  # 分支保护配置
+  protect-branch-enabled: false
+
+# Git自动提交配置
+git:
+  auto-commit:
+    # 是否启用自动提交
+    enabled: true
+    # 默认提交作者
+    author: jerry
+    # 默认提交邮箱
+    email: 1111@qq.com
+    # 默认提交消息（当用户未提供prompt时使用）
+    default-message: "AI generated code by Claude"
