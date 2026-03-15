@@ -26,4 +26,12 @@ public class GitCloneRequest {
     @Schema(description = "分支名称（可选，默认为主分支）", example = "develop")
     private String branch;
 
+    @Schema(description = "项目目录名（可选，不填则从 gitUrl 解析，如 xxx/repo.git -> repo）", example = "my-project")
+    private String projectName;
+
+    @Schema(description = "Git 用户名（私有仓库必填）", example = "your-username")
+    private String gitUsername;
+
+    @Schema(description = "Git 密码或 Token（私有仓库必填）", example = "ghp_xxx 或 password")
+    private String gitPassword;
 }
