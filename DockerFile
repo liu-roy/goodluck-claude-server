@@ -1,8 +1,8 @@
 FROM liuroy/goodluck-claude-base:latest
 
-# 创建 goodluckjava 用户
-RUN groupadd -r goodluckjava && \
-    useradd -r -g goodluckjava -d /home/goodluckjava -m -s /bin/bash goodluckjava
+# 创建 goodluckjava 用户（固定 UID/GID，避免容器重建后持久卷权限不匹配）
+RUN groupadd -r -g 1000 goodluckjava && \
+    useradd -r -u 1000 -g goodluckjava -d /home/goodluckjava -m -s /bin/bash goodluckjava
 
 # 创建 Maven 配置目录
 RUN mkdir -p /home/goodluckjava/.m2
