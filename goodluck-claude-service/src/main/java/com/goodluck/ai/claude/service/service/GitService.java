@@ -15,14 +15,16 @@ import java.util.List;
 public interface GitService {
 
     /**
-     * 克隆Git仓库
-     * 
-     * @param gitUrl    Git仓库URL
-     * @param branch    分支名称（可选，为null时使用默认分支）
+     * 克隆 Git 仓库
+     *
+     * @param gitUrl    Git 仓库 URL
+     * @param branch    分支名称（可选，为 null 时使用默认分支）
      * @param targetDir 目标目录
+     * @param username  用户名（可选，私有仓库时与 password 二选一或同时传）
+     * @param password  密码或 Token（可选）
      * @return 克隆是否成功
      */
-    boolean cloneRepository(String gitUrl, String branch, Path targetDir);
+    boolean cloneRepository(String gitUrl, String branch, Path targetDir, String username, String password);
 
     /**
      * 添加文件到暂存区

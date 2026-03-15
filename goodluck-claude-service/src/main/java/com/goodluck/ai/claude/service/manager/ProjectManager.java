@@ -82,11 +82,23 @@ public class ProjectManager {
 
 
     /**
+     * 校验项目是否存在
+     */
+    public boolean projectExists(String projectId) {
+        return projectService.projectExists(projectId);
+    }
+
+    /**
+     * 克隆仓库到工作目录（首次使用前调用）
+     */
+    public ProjectInfoResponse cloneProject(GitCloneRequest request) {
+        return projectService.cloneProject(request);
+    }
+
+    /**
      * 生成代码项目（委托给ProjectService）
      */
     public ProjectInfoResponse generateCode(CodeGenerationRequest request) {
         return projectService.generateCode(request);
     }
-
-
 }

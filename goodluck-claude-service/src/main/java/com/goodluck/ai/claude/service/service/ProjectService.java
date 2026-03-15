@@ -2,6 +2,7 @@ package com.goodluck.ai.claude.service.service;
 
 import com.goodluck.ai.claude.service.config.ClaudeProperties;
 import com.goodluck.ai.claude.api.model.req.CodeGenerationRequest;
+import com.goodluck.ai.claude.api.model.req.GitCloneRequest;
 import com.goodluck.ai.claude.api.model.resp.ProjectInfoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goodluck.common.exception.BusinessException;
@@ -31,10 +32,69 @@ public class ProjectService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private GitService gitService;
+
+    /**
+     * 校验项目是否存在（工作目录下是否存在对应目录）
+     */
+    public boolean projectExists(String projectId) {
+        if (StringUtils.isBlank(projectId)) {
+            return false;
+        }
+        Path projectDir = getProjectDirectory(projectId);
+        return Files.exists(projectDir) && Files.isDirectory(projectDir);
+    }
+
+    /**
+     * 克隆 Git 仓库到工作目录，作为新项目
+     *
+     * @param request 克隆请求（gitUrl 必填，branch、projectName 可选）
+     * @return 项目信息，含 projectName
+     */
+    public ProjectInfoResponse cloneProject(GitCloneRequest request) {
+        String projectName = StringUtils.isNotBlank(request.getProjectName())
+                ? request.getProjectName().trim()
+                : parseProjectNameFromGitUrl(request.getGitUrl());
+        if (StringUtils.isBlank(projectName)) {
+            throw new BusinessException("无法从 gitUrl 解析项目名，请传入 projectName");
+        }
+        Path targetDir = getProjectDirectory(projectName);
+        if (Files.exists(targetDir)) {
+            throw new BusinessException("项目已存在: " + projectName + "，请更换 projectName 或先删除该目录");
+        }
+        boolean ok = gitService.cloneRepository(
+                request.getGitUrl(),
+                request.getBranch(),
+                targetDir,
+                request.getGitUsername(),
+                request.getGitPassword());
+        if (!ok) {
+            throw new BusinessException("克隆失败，请检查 gitUrl、分支及网络/凭证");
+        }
+        ProjectInfoResponse resp = new ProjectInfoResponse();
+        resp.setProjectName(projectName);
+        resp.setStatus("SUCCESS");
+        resp.setCreatedTime(new Date());
+        return resp;
+    }
+
+    private static String parseProjectNameFromGitUrl(String gitUrl) {
+        if (gitUrl == null || gitUrl.isEmpty()) return null;
+        String s = gitUrl.trim();
+        if (s.endsWith(".git")) s = s.substring(0, s.length() - 4);
+        int last = s.lastIndexOf('/');
+        return last >= 0 ? s.substring(last + 1) : null;
+    }
+
     /**
      * 生成代码项目
      */
     public ProjectInfoResponse generateCode(CodeGenerationRequest request) {
+        // 入口校验：项目必须已存在（需先 clone）
+        if (!projectExists(request.getProjectName())) {
+            throw new BusinessException("项目不存在: " + request.getProjectName() + "，请先通过 /projects/clone 接口克隆仓库");
+        }
         // 确保有有效的 sessionId (UUID格式)
         boolean isNewSession = true;
         String sessionId = request.getSessionId();
