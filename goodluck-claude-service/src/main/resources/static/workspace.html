@@ -24,36 +24,11 @@
     .toolbar .mode-btn:hover { background: #505050; color: #fff; }
     .toolbar .mode-btn.active { background: #007acc; color: #fff; border-color: #007acc; }
 
-    /* ===== 生成/对话栏 ===== */
-    .chat-bar { display: none; flex-direction: column; padding: 10px 16px; background: #252526; border-bottom: 1px solid #3c3c3c; flex-shrink: 0; gap: 8px; }
-    .chat-bar.visible { display: flex; }
-    .chat-bar .input-row { display: flex; gap: 10px; align-items: flex-start; }
-    .chat-bar textarea { flex: 1; min-height: 50px; max-height: 120px; padding: 8px; background: #3c3c3c; color: #d4d4d4; border: 1px solid #555; border-radius: 4px; font-size: 13px; resize: vertical; }
-    .chat-bar textarea:focus { outline: none; border-color: #007acc; }
-    .chat-bar .btn-send { padding: 8px 18px; background: #0e639c; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; align-self: flex-start; white-space: nowrap; }
-    .chat-bar .btn-send:hover { background: #1177bb; }
-    .chat-bar .btn-send:disabled { opacity: .5; cursor: not-allowed; }
-    .chat-bar .status { font-size: 12px; color: #888; white-space: pre-wrap; max-height: 80px; overflow-y: auto; }
-    .chat-bar .status.ok { color: #4ec9b0; }
-    .chat-bar .status.err { color: #f48771; }
-
-    /* ===== 对话历史 ===== */
-    .chat-history { max-height: 260px; overflow-y: auto; border: 1px solid #3c3c3c; border-radius: 4px; background: #1e1e1e; }
-    .chat-history .title { padding: 5px 10px; font-size: 12px; color: #888; border-bottom: 1px solid #3c3c3c; }
-    .chat-history .list { padding: 6px 10px; }
-    .chat-history .msg { margin-bottom: 8px; font-size: 12px; }
-    .chat-history .msg .role { font-weight: 600; }
-    .chat-history .msg .role.user { color: #569cd6; }
-    .chat-history .msg .role.assistant { color: #4ec9b0; }
-    .chat-history .msg .time { font-size: 11px; color: #666; margin-left: 6px; }
-    .chat-history .msg .body { white-space: pre-wrap; word-break: break-all; color: #d4d4d4; padding: 4px 0; }
-    .chat-history .empty { padding: 10px; font-size: 12px; color: #666; }
-
-    /* ===== 主区域 ===== */
+    /* ===== 主区域：三栏 ===== */
     .main { display: flex; flex: 1; min-height: 0; }
 
     /* 文件树 */
-    .tree-panel { width: 280px; min-width: 200px; overflow: auto; background: #252526; border-right: 1px solid #3c3c3c; padding: 8px 0; }
+    .tree-panel { width: 260px; min-width: 180px; overflow: auto; background: #252526; border-right: 1px solid #3c3c3c; padding: 8px 0; flex-shrink: 0; }
     .tree-panel .placeholder { padding: 16px; color: #888; }
     .tree-item { padding: 4px 12px; cursor: pointer; white-space: nowrap; border-radius: 4px; }
     .tree-item.dir { display: block; padding-left: 0; }
@@ -84,26 +59,125 @@
     .content-body .hint { color: #888; }
     .content-body .error { color: #f48771; }
 
-    /* ===== 会话记录侧面板 ===== */
-    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999; display: none; }
-    .overlay.open { display: block; }
-    .side-panel { position: fixed; top: 0; right: 0; width: 440px; max-width: 90vw; height: 100vh; background: #252526; border-left: 1px solid #3c3c3c; box-shadow: -4px 0 16px rgba(0,0,0,.3); z-index: 1000; display: none; flex-direction: column; }
-    .side-panel.open { display: flex; }
-    .side-panel .head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #3c3c3c; }
-    .side-panel .head h3 { font-size: 14px; color: #d4d4d4; }
-    .side-panel .head .close { padding: 4px 10px; background: transparent; color: #888; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .side-panel .head .close:hover { color: #fff; }
-    .side-panel .tip { padding: 8px 16px; font-size: 12px; color: #888; background: #1e1e1e; border-bottom: 1px solid #3c3c3c; }
-    .side-panel .body { flex: 1; overflow: auto; padding: 10px; }
-    .side-panel table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .side-panel th { text-align: left; padding: 8px; color: #888; border-bottom: 1px solid #3c3c3c; }
-    .side-panel td { padding: 8px; border-bottom: 1px solid #2d2d2d; color: #d4d4d4; word-break: break-all; cursor: pointer; }
-    .side-panel tr:hover td { background: #2a2d2e; }
-    .side-panel .btn-resume { padding: 3px 10px; font-size: 12px; background: #0e639c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-    .side-panel .btn-resume:hover { background: #1177bb; }
-    .side-panel .foot { padding: 10px 16px; border-top: 1px solid #3c3c3c; }
-    .side-panel .foot .btn-refresh { padding: 5px 12px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .side-panel .empty { padding: 16px; color: #666; }
+    /* ===== 右侧聊天面板 ===== */
+    .chat-panel { width: 420px; min-width: 320px; display: none; flex-direction: column; background: #1e1e1e; border-left: 1px solid #3c3c3c; flex-shrink: 0; }
+    .chat-panel.visible { display: flex; }
+
+    /* Tab 栏 */
+    .chat-tabs { display: flex; background: #252526; border-bottom: 1px solid #3c3c3c; flex-shrink: 0; }
+    .chat-tab { flex: 1; padding: 10px 0; text-align: center; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; user-select: none; }
+    .chat-tab:hover { color: #d4d4d4; }
+    .chat-tab.active { color: #d4d4d4; border-bottom-color: #007acc; font-weight: 500; }
+
+    /* -- 对话视图 -- */
+    .chat-view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .chat-view.hidden { display: none; }
+
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 16px; }
+    .chat-messages::-webkit-scrollbar { width: 6px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+    .chat-messages::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    .chat-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: #555; gap: 8px; padding: 40px 20px; text-align: center; }
+    .chat-empty .icon { font-size: 36px; opacity: .5; }
+    .chat-empty .text { font-size: 13px; line-height: 1.6; }
+
+    /* 气泡 */
+    .bubble-row { display: flex; gap: 10px; max-width: 100%; }
+    .bubble-row.user { flex-direction: row-reverse; }
+    .bubble-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #fff; }
+    .bubble-row.user .bubble-avatar { background: #0e639c; }
+    .bubble-row.assistant .bubble-avatar { background: linear-gradient(135deg, #d97706, #b45309); }
+    .bubble-body { max-width: calc(100% - 50px); display: flex; flex-direction: column; gap: 4px; }
+    .bubble-row.user .bubble-body { align-items: flex-end; }
+    .bubble-row.assistant .bubble-body { align-items: flex-start; }
+    .bubble-meta { font-size: 11px; color: #666; padding: 0 4px; display: flex; align-items: center; gap: 6px; }
+    .bubble-meta .name { font-weight: 500; }
+    .bubble-row.user .bubble-meta .name { color: #569cd6; }
+    .bubble-row.assistant .bubble-meta .name { color: #d97706; }
+    .bubble-content { padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+    .bubble-row.user .bubble-content { background: #0e639c; color: #fff; border-bottom-right-radius: 4px; }
+    .bubble-row.assistant .bubble-content { background: #2d2d2d; color: #d4d4d4; border: 1px solid #3c3c3c; border-bottom-left-radius: 4px; }
+    .bubble-content code { font-family: Consolas, Monaco, monospace; font-size: 12px; padding: 1px 5px; border-radius: 3px; }
+    .bubble-row.user .bubble-content code { background: rgba(255,255,255,.15); }
+    .bubble-row.assistant .bubble-content code { background: #1e1e1e; color: #ce9178; }
+    .bubble-content pre { margin: 8px 0; padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 12px; line-height: 1.5; }
+    .bubble-row.user .bubble-content pre { background: rgba(0,0,0,.2); }
+    .bubble-row.assistant .bubble-content pre { background: #1a1a1a; border: 1px solid #333; }
+
+    /* 输入区 */
+    .chat-input-area { padding: 12px 14px; background: #252526; border-top: 1px solid #3c3c3c; flex-shrink: 0; }
+    .chat-input-wrap { display: flex; align-items: flex-end; gap: 8px; background: #3c3c3c; border: 1px solid #555; border-radius: 10px; padding: 8px 10px; transition: border-color .2s; }
+    .chat-input-wrap:focus-within { border-color: #007acc; }
+    .chat-input-wrap textarea { flex: 1; background: transparent; color: #d4d4d4; border: none; outline: none; font-size: 13px; font-family: inherit; line-height: 1.5; resize: none; min-height: 22px; max-height: 120px; }
+    .chat-input-wrap .send-btn { width: 32px; height: 32px; border-radius: 50%; background: #0e639c; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s, transform .1s; }
+    .chat-input-wrap .send-btn:hover { background: #1177bb; }
+    .chat-input-wrap .send-btn:active { transform: scale(.92); }
+    .chat-input-wrap .send-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    .chat-input-wrap .send-btn svg { width: 16px; height: 16px; }
+    .chat-status { font-size: 11px; color: #888; margin-top: 6px; min-height: 16px; display: flex; align-items: center; gap: 6px; }
+    .chat-status.ok { color: #4ec9b0; }
+    .chat-status.err { color: #f48771; }
+
+    /* 加载动画 */
+    .typing-indicator { display: inline-flex; gap: 4px; padding: 12px 16px; }
+    .typing-indicator span { width: 6px; height: 6px; background: #888; border-radius: 50%; animation: typing .8s infinite; }
+    .typing-indicator span:nth-child(2) { animation-delay: .15s; }
+    .typing-indicator span:nth-child(3) { animation-delay: .3s; }
+    @keyframes typing { 0%,60%,100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-4px); } }
+
+    /* -- 会话记录视图 -- */
+    .history-view { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .history-view.hidden { display: none; }
+    .history-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid #3c3c3c; background: #252526; flex-shrink: 0; }
+    .history-toolbar .tip { font-size: 12px; color: #888; }
+    .history-toolbar button { padding: 4px 12px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .history-toolbar button:hover { background: #505050; color: #fff; }
+    .history-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+    .history-list::-webkit-scrollbar { width: 6px; }
+    .history-list::-webkit-scrollbar-track { background: transparent; }
+    .history-list::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+    .session-card { display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #2a2a2a; transition: background .12s; }
+    .session-card:hover { background: #2a2d2e; }
+    .session-card .s-icon { width: 36px; height: 36px; border-radius: 8px; background: #333; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .session-card .s-info { flex: 1; min-width: 0; }
+    .session-card .s-info .s-id { font-size: 13px; color: #d4d4d4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .session-card .s-info .s-detail { font-size: 11px; color: #888; margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .session-card .s-info .s-detail span { white-space: nowrap; }
+    .session-card .s-btn { padding: 4px 12px; background: #0e639c; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+    .session-card .s-btn:hover { background: #1177bb; }
+    .history-empty { padding: 40px 20px; text-align: center; color: #555; font-size: 13px; }
+
+    /* ===== 克隆项目弹窗 ===== */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1100; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { width: 440px; max-width: 90vw; background: #252526; border: 1px solid #3c3c3c; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,.4); }
+    .modal .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #3c3c3c; }
+    .modal .modal-head h3 { font-size: 14px; color: #d4d4d4; }
+    .modal .modal-head .close { padding: 4px 10px; background: transparent; color: #888; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .modal .modal-head .close:hover { color: #fff; }
+    .modal .modal-body { padding: 16px; }
+    .modal .modal-body .field { margin-bottom: 12px; }
+    .modal .modal-body .field label { display: block; font-size: 12px; color: #ccc; margin-bottom: 4px; }
+    .modal .modal-body .field input { width: 100%; padding: 7px 10px; background: #3c3c3c; color: #d4d4d4; border: 1px solid #555; border-radius: 4px; font-size: 13px; }
+    .modal .modal-body .field input:focus { outline: none; border-color: #007acc; }
+    .modal .modal-body .field .hint { font-size: 11px; color: #666; margin-top: 2px; }
+    .modal .modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid #3c3c3c; }
+    .modal .modal-foot button { padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .modal .modal-foot .btn-ok { background: #0e639c; color: #fff; }
+    .modal .modal-foot .btn-ok:hover { background: #1177bb; }
+    .modal .modal-foot .btn-ok:disabled { opacity: .5; cursor: not-allowed; }
+    .modal .modal-foot .btn-cancel { background: #3c3c3c; color: #ccc; border: 1px solid #555; }
+    .modal .modal-foot .btn-cancel:hover { background: #505050; }
+    .modal .clone-status { font-size: 12px; padding: 0 16px 10px; }
+    .modal .clone-status.ok { color: #4ec9b0; }
+    .modal .clone-status.err { color: #f48771; }
+
+    /* ===== 拖拽分隔线 ===== */
+    .resize-handle { width: 4px; cursor: col-resize; background: transparent; flex-shrink: 0; position: relative; z-index: 2; transition: background .15s; }
+    .resize-handle:hover, .resize-handle.active { background: #007acc; }
   </style>
 </head>
 <body>
@@ -113,12 +187,12 @@
   <div class="group">
     <label>项目</label>
     <select id="selProject"><option value="">-- 选择项目 --</option></select>
+    <button class="btn btn-primary" id="btnCloneProject">克隆项目</button>
   </div>
   <div class="group">
     <label>会话</label>
     <select id="selSession"><option value="">-- 选择会话 --</option></select>
     <button class="btn btn-secondary" id="btnNewSession">新建会话</button>
-    <button class="btn btn-secondary" id="btnOpenHistory">会话记录</button>
   </div>
   <div class="group" id="branchGroup" style="display:none;">
     <label>分支</label>
@@ -134,37 +208,51 @@
   </div>
 </div>
 
-<!-- 生成/对话栏 -->
-<div class="chat-bar" id="chatBar">
-  <div class="input-row">
-    <textarea id="txtPrompt" placeholder="输入需求，同一会话下可多轮对话…"></textarea>
-    <button class="btn-send" id="btnSend">发送</button>
-  </div>
-  <div class="status" id="sendStatus"></div>
-  <div class="chat-history" id="chatHistory">
-    <div class="title">对话记录</div>
-    <div class="list" id="chatList"></div>
+<!-- 克隆项目弹窗 -->
+<div class="modal-overlay" id="cloneOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>克隆 Git 项目</h3>
+      <button class="close" id="btnCloneClose">关闭</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Git 仓库地址 *</label>
+        <input type="text" id="cloneGitUrl" placeholder="https://github.com/user/repo.git">
+      </div>
+      <div class="field">
+        <label>分支</label>
+        <input type="text" id="cloneBranch" placeholder="留空默认主分支">
+      </div>
+      <div class="field">
+        <label>项目目录名</label>
+        <input type="text" id="cloneProjectName" placeholder="留空则从 URL 自动解析">
+        <div class="hint">克隆后在项目列表中显示的名称</div>
+      </div>
+      <div class="field">
+        <label>Git 用户名</label>
+        <input type="text" id="cloneUsername" placeholder="私有仓库填写">
+      </div>
+      <div class="field">
+        <label>Git 密码 / Token</label>
+        <input type="password" id="clonePassword" placeholder="私有仓库填写">
+      </div>
+    </div>
+    <div class="clone-status" id="cloneStatus"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btnCloneCancel">取消</button>
+      <button class="btn-ok" id="btnCloneOk">克隆</button>
+    </div>
   </div>
 </div>
 
-<!-- 会话记录侧面板 -->
-<div class="overlay" id="overlay"></div>
-<div class="side-panel" id="sidePanel">
-  <div class="head">
-    <h3>会话记录</h3>
-    <button class="close" id="btnClosePanel">关闭</button>
-  </div>
-  <div class="tip">会话持久化到文件，重启不丢失。点击「继续」可在该会话中继续对话。</div>
-  <div class="body"><table><thead><tr><th>会话ID</th><th>项目</th><th>创建</th><th>最后使用</th><th></th></tr></thead><tbody id="panelBody"></tbody></table><div class="empty" id="panelEmpty" style="display:none;">暂无会话</div></div>
-  <div class="foot"><button class="btn-refresh" id="btnRefreshPanel">刷新</button></div>
-</div>
-
-<!-- 主区域 -->
+<!-- 主区域：文件树 | 编辑器 | 聊天面板 -->
 <div class="main">
   <div class="tree-panel" id="treePanel">
     <div class="placeholder" id="treePlaceholder">请先选择项目</div>
     <div id="treeRoot" style="display:none;"></div>
   </div>
+
   <div class="content-panel">
     <div class="content-toolbar">
       <span class="path" id="filePath">未选择文件</span>
@@ -175,18 +263,63 @@
     </div>
     <div class="content-body" id="contentBody"><span class="hint">点击左侧文件查看内容</span></div>
   </div>
+
+  <div class="resize-handle" id="chatResizer"></div>
+
+  <!-- 右侧聊天面板（内含 对话 / 会话记录 两个 Tab） -->
+  <div class="chat-panel" id="chatPanel">
+
+    <!-- Tab 切换 -->
+    <div class="chat-tabs">
+      <div class="chat-tab active" id="tabChat">对话</div>
+      <div class="chat-tab" id="tabHistory">会话记录</div>
+    </div>
+
+    <!-- Tab 1: 对话 -->
+    <div class="chat-view" id="viewChat">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty" id="chatEmpty">
+          <div class="icon">💬</div>
+          <div class="text">选择项目和会话后<br>在这里与 Claude 对话</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <div class="chat-input-wrap">
+          <textarea id="txtPrompt" rows="1" placeholder="输入需求，按 Enter 发送…"></textarea>
+          <button class="send-btn" id="btnSend" title="发送">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="chat-status" id="sendStatus"></div>
+      </div>
+    </div>
+
+    <!-- Tab 2: 会话记录 -->
+    <div class="history-view hidden" id="viewHistory">
+      <div class="history-toolbar">
+        <span class="tip">点击「继续」回到对话并加载历史</span>
+        <button id="btnRefreshHistory">刷新</button>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="history-empty" id="historyEmpty">暂无会话记录</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
 const selProject = $('selProject'), selSession = $('selSession'), selBranch = $('selBranch');
 const branchGroup = $('branchGroup');
-const chatBar = $('chatBar'), txtPrompt = $('txtPrompt'), btnSend = $('btnSend'), sendStatus = $('sendStatus');
-const chatList = $('chatList');
-const overlay = $('overlay'), sidePanel = $('sidePanel'), panelBody = $('panelBody'), panelEmpty = $('panelEmpty');
+const chatPanel = $('chatPanel'), chatMessages = $('chatMessages'), chatEmpty = $('chatEmpty');
+const txtPrompt = $('txtPrompt'), btnSend = $('btnSend'), sendStatus = $('sendStatus');
 const treePlaceholder = $('treePlaceholder'), treeRoot = $('treeRoot');
 const filePath = $('filePath'), editActions = $('editActions'), contentBody = $('contentBody');
 const btnView = $('btnView'), btnEdit = $('btnEdit');
+
+const tabChat = $('tabChat'), tabHistory = $('tabHistory');
+const viewChat = $('viewChat'), viewHistory = $('viewHistory');
+const historyList = $('historyList'), historyEmpty = $('historyEmpty');
 
 let mode = 'view', curFile = null, curContent = '';
 
@@ -208,6 +341,65 @@ async function api(method, path, body) {
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function logout() { localStorage.clear(); location.href = '/login.html'; }
+
+// ===== Tab 切换 =====
+function switchTab(tab) {
+  const isChat = tab === 'chat';
+  tabChat.classList.toggle('active', isChat);
+  tabHistory.classList.toggle('active', !isChat);
+  viewChat.classList.toggle('hidden', !isChat);
+  viewHistory.classList.toggle('hidden', isChat);
+  if (!isChat) renderHistory();
+}
+tabChat.onclick = () => switchTab('chat');
+tabHistory.onclick = () => switchTab('history');
+
+// ===== 简单 Markdown =====
+function renderMd(text) {
+  if (!text) return '';
+  let s = esc(text);
+  s = s.replace(/```([\s\S]*?)```/g, (_, code) => `<pre>${code}</pre>`);
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return s;
+}
+
+// ===== 气泡 =====
+function createBubble(role, content, time) {
+  const isUser = role === 'user';
+  const row = document.createElement('div');
+  row.className = 'bubble-row ' + (isUser ? 'user' : 'assistant');
+  const avatar = document.createElement('div');
+  avatar.className = 'bubble-avatar';
+  avatar.textContent = isUser ? '我' : 'C';
+  const body = document.createElement('div');
+  body.className = 'bubble-body';
+  const meta = document.createElement('div');
+  meta.className = 'bubble-meta';
+  meta.innerHTML = `<span class="name">${isUser ? '我' : 'Claude'}</span>` + (time ? `<span>${esc(time)}</span>` : '');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble-content';
+  bubble.innerHTML = renderMd(content || '');
+  body.appendChild(meta);
+  body.appendChild(bubble);
+  row.appendChild(avatar);
+  row.appendChild(body);
+  return row;
+}
+
+function showTypingIndicator() {
+  const row = document.createElement('div');
+  row.className = 'bubble-row assistant'; row.id = 'typingRow';
+  const avatar = document.createElement('div');
+  avatar.className = 'bubble-avatar'; avatar.textContent = 'C';
+  const body = document.createElement('div');
+  body.className = 'bubble-body';
+  body.innerHTML = '<div class="bubble-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  row.appendChild(avatar); row.appendChild(body);
+  chatMessages.appendChild(row);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+function hideTypingIndicator() { const t = $('typingRow'); if (t) t.remove(); }
+function scrollToBottom() { requestAnimationFrame(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }); }
 
 // ===== 项目 =====
 async function loadProjects() {
@@ -237,6 +429,8 @@ $('btnNewSession').onclick = async () => {
     const d = await api('POST', '/sessions', {});
     await loadSessions();
     if (d.data && d.data.sessionId) selSession.value = d.data.sessionId;
+    loadMessages();
+    switchTab('chat');
   } catch(e) { alert('新建会话失败: '+e.message); }
 };
 
@@ -344,44 +538,66 @@ $('btnCancelEdit').onclick = () => setMode('view');
 // ===== 对话历史加载 =====
 async function loadMessages() {
   const sid = selSession.value, pid = selProject.value;
-  chatList.innerHTML = '';
-  if (!sid || !pid) { chatList.innerHTML = '<div class="empty">选择项目和会话后显示</div>'; return; }
+  chatMessages.querySelectorAll('.bubble-row').forEach(e => e.remove());
+  chatEmpty.style.display = 'flex';
+  if (!sid || !pid) { chatEmpty.querySelector('.text').innerHTML = '选择项目和会话后<br>在这里与 Claude 对话'; return; }
   try {
     const d = await api('GET', `/sessions/messages?sessionId=${encodeURIComponent(sid)}&projectName=${encodeURIComponent(pid)}`);
     const list = d.data || [];
-    if (!list.length) { chatList.innerHTML = '<div class="empty">暂无对话</div>'; return; }
-    list.forEach(m => {
-      const div = document.createElement('div'); div.className = 'msg';
-      div.innerHTML = `<span class="role ${esc(m.role)}">${m.role==='user'?'我':'Claude'}</span><span class="time">${esc(m.time||'')}</span><div class="body">${esc(m.content||'')}</div>`;
-      chatList.appendChild(div);
-    });
-    chatList.scrollTop = chatList.scrollHeight;
-  } catch(e) { chatList.innerHTML = '<div class="empty error">加载失败</div>'; }
+    if (!list.length) { chatEmpty.querySelector('.text').innerHTML = '暂无对话记录<br>输入需求开始对话'; return; }
+    chatEmpty.style.display = 'none';
+    list.forEach(m => { chatMessages.appendChild(createBubble(m.role, m.content, m.time)); });
+    scrollToBottom();
+  } catch(e) { chatEmpty.querySelector('.text').innerHTML = '加载对话失败'; }
 }
 
-// ===== 发送（生成/继续对话）=====
-btnSend.onclick = async () => {
+// ===== 发送 =====
+btnSend.onclick = sendMessage;
+async function sendMessage() {
   const pid = selProject.value, sid = selSession.value || undefined, prompt = (txtPrompt.value||'').trim();
-  if (!pid) { sendStatus.textContent = '请先选择项目'; sendStatus.className = 'status err'; return; }
-  if (!prompt) { sendStatus.textContent = '请输入需求'; sendStatus.className = 'status err'; return; }
+  if (!pid) { sendStatus.textContent = '请先选择项目'; sendStatus.className = 'chat-status err'; return; }
+  if (!prompt) { sendStatus.textContent = '请输入需求'; sendStatus.className = 'chat-status err'; return; }
+  switchTab('chat');
+  chatEmpty.style.display = 'none';
+  chatMessages.appendChild(createBubble('user', prompt, new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'})));
+  scrollToBottom();
+  txtPrompt.value = ''; autoResizeTextarea();
   btnSend.disabled = true;
-  sendStatus.textContent = '请求中…'; sendStatus.className = 'status';
+  sendStatus.textContent = ''; sendStatus.className = 'chat-status';
+  showTypingIndicator();
   try {
     const d = await api('POST', '/projects/generate', { projectName: pid, prompt, sessionId: sid || null });
+    hideTypingIndicator();
     const data = d.data || {};
     if (data.sessionId && !selSession.value) { await loadSessions(); selSession.value = data.sessionId; }
     if (data.status === 'SUCCESS') {
-      sendStatus.className = 'status ok';
-      sendStatus.textContent = data.assistantMessage ? 'Claude:\n'+data.assistantMessage : '生成成功';
-      loadSessions(); loadTree(pid); loadMessages();
-      txtPrompt.value = '';
+      if (data.assistantMessage) {
+        chatMessages.appendChild(createBubble('assistant', data.assistantMessage, new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'})));
+      }
+      sendStatus.className = 'chat-status ok'; sendStatus.textContent = '生成完成';
+      setTimeout(() => { if (sendStatus.textContent === '生成完成') sendStatus.textContent = ''; }, 3000);
+      loadSessions(); loadTree(pid);
     } else {
-      sendStatus.className = 'status err';
-      sendStatus.textContent = data.error || data.assistantMessage || '请求失败';
+      const errMsg = data.error || data.assistantMessage || '请求失败';
+      chatMessages.appendChild(createBubble('assistant', errMsg, new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'})));
+      sendStatus.className = 'chat-status err'; sendStatus.textContent = '执行失败';
     }
-  } catch(e) { sendStatus.textContent = '失败: '+e.message; sendStatus.className = 'status err'; }
+    scrollToBottom();
+  } catch(e) {
+    hideTypingIndicator();
+    sendStatus.textContent = '失败: '+e.message; sendStatus.className = 'chat-status err';
+  }
   btnSend.disabled = false;
-};
+}
+
+function autoResizeTextarea() {
+  txtPrompt.style.height = 'auto';
+  txtPrompt.style.height = Math.min(txtPrompt.scrollHeight, 120) + 'px';
+}
+txtPrompt.addEventListener('input', autoResizeTextarea);
+txtPrompt.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
 
 // ===== 项目/会话切换 =====
 selProject.onchange = () => {
@@ -390,47 +606,105 @@ selProject.onchange = () => {
   contentBody.innerHTML = '<span class="hint">点击左侧文件查看内容</span>';
   editActions.style.display = 'none';
   sendStatus.textContent = '';
-  chatBar.classList.toggle('visible', !!pid);
+  chatPanel.classList.toggle('visible', !!pid);
   if (!pid) {
     treePlaceholder.style.display = 'block'; treeRoot.style.display = 'none';
     branchGroup.style.display = 'none';
     return;
   }
   loadTree(pid); loadBranches(pid); loadMessages();
+  switchTab('chat');
 };
-selSession.onchange = () => loadMessages();
+selSession.onchange = () => { loadMessages(); switchTab('chat'); };
 
-// ===== 会话记录侧面板 =====
-$('btnOpenHistory').onclick = () => { overlay.classList.add('open'); sidePanel.classList.add('open'); renderPanel(); };
-$('btnClosePanel').onclick = closePanel;
-overlay.onclick = closePanel;
-function closePanel() { overlay.classList.remove('open'); sidePanel.classList.remove('open'); }
-
-async function renderPanel() {
-  panelBody.innerHTML = ''; panelEmpty.style.display = 'none';
+// ===== 会话记录（内嵌在 Tab 2 中）=====
+async function renderHistory() {
+  historyList.innerHTML = '';
+  historyEmpty.style.display = 'none';
+  historyList.appendChild(historyEmpty);
   try {
     const d = await api('GET', '/sessions');
     const list = d.data || [];
-    if (!list.length) { panelEmpty.style.display = 'block'; return; }
+    if (!list.length) { historyEmpty.style.display = 'block'; return; }
     list.forEach(s => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${esc((s.sessionId||'').slice(0,8)+'…')}</td><td>${esc(s.projectName||'—')}</td><td>${esc(s.createdAt||'—')}</td><td>${esc(s.lastUsedAt||'—')}</td><td><button class="btn-resume">继续</button></td>`;
-      tr.querySelector('.btn-resume').onclick = e => { e.stopPropagation(); resumeSession(s); };
-      tr.onclick = () => resumeSession(s);
-      panelBody.appendChild(tr);
+      const card = document.createElement('div');
+      card.className = 'session-card';
+      card.innerHTML =
+        `<div class="s-icon">💬</div>` +
+        `<div class="s-info">` +
+          `<div class="s-id">${esc(s.projectName || '未绑定项目')} · ${esc((s.sessionId||'').slice(0,8))}…</div>` +
+          `<div class="s-detail"><span>创建: ${esc(s.createdAt||'—')}</span><span>最近: ${esc(s.lastUsedAt||'—')}</span></div>` +
+        `</div>` +
+        `<button class="s-btn">继续</button>`;
+      card.querySelector('.s-btn').onclick = e => { e.stopPropagation(); resumeSession(s); };
+      card.onclick = () => resumeSession(s);
+      historyList.appendChild(card);
     });
-  } catch(e) { panelEmpty.style.display = 'block'; panelEmpty.textContent = '加载失败'; }
+  } catch(e) { historyEmpty.textContent = '加载失败'; historyEmpty.style.display = 'block'; }
 }
 function resumeSession(s) {
+  if (s.projectName && selProject.value !== s.projectName) {
+    selProject.value = s.projectName;
+    selProject.dispatchEvent(new Event('change'));
+  }
   selSession.value = s.sessionId || '';
-  if (s.projectName) { selProject.value = s.projectName; selProject.dispatchEvent(new Event('change')); }
-  closePanel(); txtPrompt.focus();
+  loadMessages();
+  switchTab('chat');
+  setTimeout(() => txtPrompt.focus(), 100);
 }
-$('btnRefreshPanel').onclick = () => { renderPanel(); loadSessions(); };
+$('btnRefreshHistory').onclick = () => { renderHistory(); loadSessions(); };
+
+// ===== 克隆项目 =====
+const cloneOverlay = $('cloneOverlay'), cloneStatus = $('cloneStatus');
+const btnCloneOk = $('btnCloneOk');
+function openCloneModal() { cloneOverlay.classList.add('open'); cloneStatus.textContent = ''; cloneStatus.className = 'clone-status'; }
+function closeCloneModal() { cloneOverlay.classList.remove('open'); }
+$('btnCloneProject').onclick = openCloneModal;
+$('btnCloneClose').onclick = closeCloneModal;
+$('btnCloneCancel').onclick = closeCloneModal;
+cloneOverlay.onclick = e => { if (e.target === cloneOverlay) closeCloneModal(); };
+btnCloneOk.onclick = async () => {
+  const gitUrl = $('cloneGitUrl').value.trim();
+  if (!gitUrl) { cloneStatus.textContent = '请输入 Git 仓库地址'; cloneStatus.className = 'clone-status err'; return; }
+  const body = { gitUrl };
+  const branch = $('cloneBranch').value.trim();
+  const projectName = $('cloneProjectName').value.trim();
+  const gitUsername = $('cloneUsername').value.trim();
+  const gitPassword = $('clonePassword').value;
+  if (branch) body.branch = branch;
+  if (projectName) body.projectName = projectName;
+  if (gitUsername) body.gitUsername = gitUsername;
+  if (gitPassword) body.gitPassword = gitPassword;
+  btnCloneOk.disabled = true;
+  cloneStatus.textContent = '克隆中，请稍候…'; cloneStatus.className = 'clone-status';
+  try {
+    const d = await api('POST', '/projects/clone', body);
+    cloneStatus.textContent = '克隆成功!'; cloneStatus.className = 'clone-status ok';
+    await loadProjects();
+    const name = d.data?.projectName || projectName;
+    if (name) { selProject.value = name; selProject.dispatchEvent(new Event('change')); }
+    setTimeout(closeCloneModal, 800);
+  } catch(e) { cloneStatus.textContent = '克隆失败: ' + e.message; cloneStatus.className = 'clone-status err'; }
+  btnCloneOk.disabled = false;
+};
+
+// ===== 拖拽调宽 =====
+(function() {
+  const handle = $('chatResizer');
+  let startX, startW;
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault(); startX = e.clientX; startW = chatPanel.offsetWidth;
+    handle.classList.add('active');
+    const onMove = ev => { chatPanel.style.width = Math.max(280, Math.min(startW - (ev.clientX - startX), window.innerWidth * 0.6)) + 'px'; };
+    const onUp = () => { handle.classList.remove('active'); document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+})();
 
 // ===== 登出 & 用户名 =====
-document.getElementById('btnLogout').onclick = logout;
-document.getElementById('userLabel').textContent = localStorage.getItem('userName') || '';
+$('btnLogout').onclick = logout;
+$('userLabel').textContent = localStorage.getItem('userName') || '';
 
 // ===== 初始化 =====
 loadProjects(); loadSessions();
