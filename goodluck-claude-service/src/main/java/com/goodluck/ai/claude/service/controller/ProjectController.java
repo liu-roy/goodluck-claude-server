@@ -47,8 +47,22 @@ public class ProjectController implements ProjectFeignClient {
 
 
 
+    @PostMapping("/clone")
+    @Operation(summary = "首次克隆项目", description = "将 Git 仓库克隆到工作目录，作为可用的项目；之后方可进行生成代码等操作")
+    public R<ProjectInfoResponse> cloneProject(@Valid @RequestBody GitCloneRequest request) {
+        try {
+            ProjectInfoResponse info = projectManager.cloneProject(request);
+            return R.success(info);
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("克隆项目失败", e);
+            return R.error(500, "克隆失败: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/generate")
-    @Operation(summary = "生成代码", description = "使用Claude AI生成代码并创建新项目")
+    @Operation(summary = "生成代码", description = "使用Claude AI生成代码（要求项目已存在，不存在时请先调用 clone）")
     @Override
     public R<ProjectInfoResponse> generateProject(
             @Valid @RequestBody CodeGenerationRequest request) {

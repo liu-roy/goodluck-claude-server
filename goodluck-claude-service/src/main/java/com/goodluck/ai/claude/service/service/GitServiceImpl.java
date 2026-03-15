@@ -496,16 +496,18 @@ public class GitServiceImpl implements GitService {
     // ================== GitService 接口实现（使用JGit） ==================
 
     /**
-     * 使用JGit克隆Git仓库
-     * 支持公开仓库和私有仓库（使用GitLab access token认证）
-     * 
-     * @param gitUrl    Git仓库URL
+     * 使用 JGit 克隆 Git 仓库
+     * 支持公开仓库；私有仓库优先使用传入的 username/password，否则使用配置的 GitLab token
+     *
+     * @param gitUrl    Git 仓库 URL
      * @param branch    分支名称
      * @param targetDir 目标目录
+     * @param username  用户名（可选）
+     * @param password  密码或 Token（可选）
      * @return 是否成功
      */
     @Override
-    public boolean cloneRepository(String gitUrl, String branch, Path targetDir) {
+    public boolean cloneRepository(String gitUrl, String branch, Path targetDir, String username, String password) {
         try {
             log.info("开始使用JGit克隆仓库: {} 到 {}", gitUrl, targetDir);
 
@@ -514,23 +516,21 @@ public class GitServiceImpl implements GitService {
                     .setDirectory(targetDir.toFile())
                     .setCloneAllBranches(false);
 
-            // 如果指定了分支
             if (branch != null && !branch.isEmpty()) {
                 cloneCommand.setBranch(branch);
             }
 
-            // 如果是GitLab仓库并且配置了access token，使用token进行认证
-            if (gitUrl != null
+            // 优先使用请求传入的用户名密码（支持带用户名密码的 clone）
+            if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+                log.info("使用请求传入的凭证进行认证");
+                cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
+            } else if (gitUrl != null
                     && gitUrl.contains(gitlabHost.replace("https://", "").replace("http://", "").replace("/", ""))
                     && StringUtils.isNotBlank(gitLabAccessToken)) {
-                log.info("检测到GitLab仓库，使用access token进行认证");
-                // GitLab使用 "oauth2" 作为用户名，access token 作为密码
-                CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("oauth2",
-                        gitLabAccessToken);
-                cloneCommand.setCredentialsProvider(credentialsProvider);
+                log.info("检测到GitLab仓库，使用配置的 access token 进行认证");
+                cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider("oauth2", gitLabAccessToken));
             }
 
-            // 设置进度监控
             cloneCommand.setProgressMonitor(new SimpleProgressMonitor());
 
             try (Git git = cloneCommand.call()) {
