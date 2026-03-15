@@ -67,23 +67,6 @@ public class ClaudeProperties {
 
     private String generateCodePrompt = "";
 
-    /**
-     * 完成todo提示词
-     */
-    private Resource claudeImplTodoPrompt;
-
-    /**
-     * 生成 sql提示词
-     */
-    private Resource claudeGenerateSqlPrompt;
-
-    public String loadClaudeImplTodoPrompt() throws Exception {
-        return loadPrompt(claudeImplTodoPrompt);
-    }
-
-    public String loadClaudeGenerateSqlPrompt() throws Exception {
-        return loadPrompt(claudeGenerateSqlPrompt);
-    }
 
     private String loadPrompt(Resource resource) throws Exception {
         try (InputStream in = resource.getInputStream()) {
