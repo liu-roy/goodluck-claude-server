@@ -4,54 +4,176 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
-    <pluginGroups>
+  <pluginGroups>
+    <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+  </pluginGroups>
+  <proxies></proxies>
 
-    </pluginGroups>
+  <localRepository>/Users/liuroy/Documents/maven-repo</localRepository>
 
-    <proxies>
+  <servers>
+    <!-- 光明乳业 --> 
+    <!-- <server>
+      <id>brightdairy</id>
+      <username>brightdairy-releases</username>
+      <password>5C2lrxpfZZTkMmGY</password>
+    </server> -->
+     <server>
+      <id>flexispot-DE</id>
+      <username>admin</username>
+      <password>hq5RKSLPUtMRu5yV</password>
+    </server>
+    <server>
+      <id>terminus</id>
+      <username>terminus-staff</username>
+      <password>yvgnspQXuTCugeYTKeChhyM9</password>
+    </server>
+    <server>
+       <id>public</id>
+       <username>admin</username>
+       <password>anywhere@1234</password>
+     </server>
+     <!-- 艾多美 -->
+     <server>
+      <id>atomy</id>
+      <username>atomy-snapshots</username>
+      <password>SY8LswmISag9kTHd</password>
+      <filePermissions>664</filePermissions>
+   <!--目录被创建时的权限。 -->
+      <directoryPermissions>775</directoryPermissions>
+    </server>
+  </servers>
 
-    </proxies>
-    <servers>
-    </servers>
+
+  <profiles>
+    <!-- <profile>
+      <id>brightdairy</id>
+      <repositories>
+        <repository>
+          <id>brightdiary</id>
+          <url>http://nexus-sys.tpaas.4008117117.com/repository/public/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>   
+        <pluginRepository>   
+          <id>terminus</id>   
+          <url>http://nexus-sys.tpaas.4008117117.com/repository/public/</url>   
+          <releases>   
+            <enabled>true</enabled>   
+          </releases>   
+          <snapshots>   
+            <enabled>true</enabled>   
+          </snapshots>        
+        </pluginRepository> 
+      </pluginRepositories>
+    </profile> -->
 
 
-    <mirrors>
-        <mirror>
-            <id>alimaven</id>
-            <name>aliyun maven</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-            <mirrorOf>central</mirrorOf>
-        </mirror>
-    </mirrors>
+    <profile>
+      <id>terminus</id>
+      <repositories>
+        <repository>
+          <id>terminus</id>
+          <url>https://repo.terminus.io/repository/public/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>sonatype-nexus-snapshots</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+         </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>   
+        <pluginRepository>   
+          <id>terminus</id>
+          <url>https://repo.terminus.io/repository/public/</url>   
+          <releases>   
+            <enabled>true</enabled>   
+          </releases>   
+          <snapshots>   
+            <enabled>true</enabled>   
+          </snapshots>        
+        </pluginRepository> 
+      </pluginRepositories>
+    </profile>
 
+    <!-- 艾多美 -->
+    <profile>
+      <id>atomy</id>
+      <repositories>
+        <repository>
+          <id>atomy</id>
+          <url>http://nexus-sys.noprod.atomy.cn/repository/public/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>atomy</id>
+          <url>http://nexus-sys.noprod.atomy.cn/repository/public/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+    
+     <!-- <profile>
+      <id>flexispot-DE</id>
+      <repositories>
+        <repository>
+          <id>flexispot-DE</id>
+          <url>https://nexus-sys.app.flexispot.de/repository/public/</url>
+          <releases>
+     <enabled>true</enabled>
+         </releases>
+         <snapshots>
+           <enabled>true</enabled>
+         </snapshots>
+       </repository>
+     </repositories>
+     <pluginRepositories>   
+       <pluginRepository> 
+         <id>flexispot-DE</id>  
+         <url>https://nexus-sys.app.flexispot.de/repository/public/</url>  
+         <releases> 
+           <enabled>true</enabled>   
+         </releases>   
+         <snapshots>  
+           <enabled>true</enabled>   
+         </snapshots>       
+       </pluginRepository> 
+     </pluginRepositories>
+   </profile> -->
+  </profiles>
 
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <!-- repositories and pluginRepositories here-->
-            <repositories>
-                <!--<repository>
-                    <id>archetype</id>
-                    <name>archetype</name>
-                    <url>https://maven.goodluck.net/repository/maven-releases/</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                        <updatePolicy>always</updatePolicy>
-                    </snapshots>
-                </repository>-->
-                <repository>
-                    <id>archetype</id>
-                    <name>archetype</name>
-                    <url>https://maven.goodluck.net/repository/maven-snapshots/</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                        <updatePolicy>always</updatePolicy>
-                    </snapshots>
-                </repository>
-            </repositories>
-        </profile>
-    </profiles>
-    <activeProfiles>
-        <activeProfile>dev</activeProfile>
-    </activeProfiles>
+  <activeProfiles>
+    <!-- <activeProfile>brightdairy</activeProfile> -->
+    <activeProfile>terminus</activeProfile>
+    <activeProfile>atomy</activeProfile>
+  </activeProfiles>
 </settings>

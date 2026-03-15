@@ -128,6 +128,10 @@
     <button class="mode-btn active" id="btnView">查看</button>
     <button class="mode-btn" id="btnEdit">编辑</button>
   </div>
+  <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+    <span style="font-size:12px; color:#888;" id="userLabel"></span>
+    <button class="btn btn-secondary" id="btnLogout" style="font-size:12px;">退出</button>
+  </div>
 </div>
 
 <!-- 生成/对话栏 -->
@@ -186,16 +190,24 @@ const btnView = $('btnView'), btnEdit = $('btnEdit');
 
 let mode = 'view', curFile = null, curContent = '';
 
+// ===== 登录态检查 =====
+const _token = localStorage.getItem('token');
+if (!_token) { location.href = '/login.html'; }
+
 // ===== API 工具 =====
 async function api(method, path, body) {
+  const token = localStorage.getItem('token');
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers['access-token'] = token;
   if (body !== undefined) opts.body = JSON.stringify(body);
   const r = await fetch(path, opts);
+  if (r.status === 401) { localStorage.removeItem('token'); location.href = '/login.html'; return; }
   const d = await r.json();
   if (d.code !== undefined && d.code !== 200 && d.code !== 0) throw new Error(d.message || '请求失败');
   return d;
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function logout() { localStorage.clear(); location.href = '/login.html'; }
 
 // ===== 项目 =====
 async function loadProjects() {
@@ -415,6 +427,10 @@ function resumeSession(s) {
   closePanel(); txtPrompt.focus();
 }
 $('btnRefreshPanel').onclick = () => { renderPanel(); loadSessions(); };
+
+// ===== 登出 & 用户名 =====
+document.getElementById('btnLogout').onclick = logout;
+document.getElementById('userLabel').textContent = localStorage.getItem('userName') || '';
 
 // ===== 初始化 =====
 loadProjects(); loadSessions();

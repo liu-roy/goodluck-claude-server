@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ClaudeCode - 登录</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      width: 380px;
+      background: #252526;
+      border: 1px solid #3c3c3c;
+      border-radius: 8px;
+      padding: 40px 32px 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+
+    .login-card .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .login-card .logo h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #d4d4d4;
+      letter-spacing: .5px;
+    }
+    .login-card .logo p {
+      font-size: 13px;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      background: #3c3c3c;
+      color: #d4d4d4;
+      border: 1px solid #555;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color .2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #007acc;
+    }
+    .form-group input::placeholder {
+      color: #777;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 10px;
+      background: #0e639c;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .2s;
+      margin-top: 4px;
+    }
+    .btn-login:hover { background: #1177bb; }
+    .btn-login:active { background: #0d5689; }
+    .btn-login:disabled { opacity: .5; cursor: not-allowed; }
+
+    .error-msg {
+      margin-top: 14px;
+      padding: 8px 12px;
+      background: rgba(244,135,113,.12);
+      border: 1px solid rgba(244,135,113,.3);
+      border-radius: 4px;
+      color: #f48771;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+    .error-msg.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo">
+    <h1>ClaudeCode</h1>
+    <p>AI 代码工作台</p>
+  </div>
+
+  <form id="loginForm" autocomplete="on">
+    <div class="form-group">
+      <label for="username">用户名</label>
+      <input type="text" id="username" name="username" placeholder="请输入用户名" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="password">密码</label>
+      <input type="password" id="password" name="password" placeholder="请输入密码" required>
+    </div>
+    <button type="submit" class="btn-login" id="btnLogin">登 录</button>
+  </form>
+
+  <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<script>
+const loginForm = document.getElementById('loginForm');
+const btnLogin  = document.getElementById('btnLogin');
+const errorMsg  = document.getElementById('errorMsg');
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.classList.add('visible');
+}
+function hideError() {
+  errorMsg.classList.remove('visible');
+}
+
+if (localStorage.getItem('token')) {
+  location.href = '/workspace.html';
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideError();
+
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!username || !password) {
+    showError('请输入用户名和密码');
+    return;
+  }
+
+  btnLogin.disabled = true;
+  btnLogin.textContent = '登录中…';
+
+  try {
+    const resp = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (resp.status === 401) {
+      const data = await resp.json().catch(() => ({}));
+      showError(data.message || '用户名或密码错误');
+      return;
+    }
+
+    if (!resp.ok) {
+      showError('登录失败，状态码: ' + resp.status);
+      return;
+    }
+
+    const data = await resp.json();
+    const token = data.token || (data.data && data.data.token);
+    if (!token) {
+      showError('登录响应异常，未获取到 Token');
+      return;
+    }
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('userCode', data.userCode || data.data?.userCode || username);
+    localStorage.setItem('userName', data.userName || data.data?.userName || username);
+
+    location.href = '/workspace.html';
+  } catch (err) {
+    showError('网络异常: ' + err.message);
+  } finally {
+    btnLogin.disabled = false;
+    btnLogin.textContent = '登 录';
+  }
+});
+</script>
+</body>
+</html>
