@@ -51,9 +51,9 @@ jobs:
           
 
 
-      # 使用 Maven 构建项目
+      # 使用 Maven 构建项目（-U 强制更新 SNAPSHOT 依赖）
       - name: Build with Maven
-        run: mvn clean package -DskipTests -s ~/.m2/settings.xml
+        run: mvn clean package -DskipTests -U -s ~/.m2/settings.xml
 
       - name: Build the Docker image
         run: docker build --tag liuroy/goodluck-claude-server --file ./DockerFile .
