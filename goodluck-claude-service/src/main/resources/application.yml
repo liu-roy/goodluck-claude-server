@@ -85,8 +85,8 @@ knife4j:
   enable: true
   basic:
     enable: true
-    username: xxx
-    password: xxxxxxxx
+    username: goodluck
+    password: goodluck
   setting:
     language: zh_cn
 
@@ -112,8 +112,8 @@ goodluck:
     jwt-secret: goodluck-claude-server-jwt-secret-2026
     whitelist: /actuator/**,/error,/swagger-ui/**,/swagger-ui.html,/swagger-resources/**,/v3/api-docs/**,/doc.html,/webjars/**,/login,/login.html,/workspace.html,/favicon.ico,/h2-console/**
     users:
-      - username: xxx
-        password: xxxxx
+      - username: goodluck
+        password: goodluck
 
 # Claude配置
 claude:
