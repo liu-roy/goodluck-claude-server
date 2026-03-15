@@ -19,9 +19,11 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 强制 Node.js 24
 
     steps:
+      # 检出代码
       - name: Checkout code
-        uses: actions/checkout@v3   # 升级到 v3
+        uses: actions/checkout@v3
 
+      # Maven 缓存
       - name: Cache Maven repository
         uses: actions/cache@v3
         with:
@@ -30,28 +32,38 @@ jobs:
           restore-keys: |
             maven-cache-${{ runner.os }}-
 
+      # 设置 Java
       - name: Setup Java JDK
-        uses: actions/setup-java@v4.6.0  # 如果有 v4.6+ 就用，兼容 Node.js 24
+        uses: actions/setup-java@v4.6.0
         with:
           java-version: 8
           distribution: zulu
 
+      # Maven settings
       - name: Configure Maven settings
         run: |
           mkdir -p ~/.m2
           echo "${{ secrets.MAVEN_SETTINGS }}" > ~/.m2/settings.xml 
 
+      # Maven 构建
       - name: Build with Maven
-        run: mvn clean package -DskipTests -s ~/.m2/settings.xml
+        run: |
+          set -o pipefail   # 保证管道失败会返回非零退出码
+          mvn clean package -DskipTests -s ~/.m2/settings.xml | tee maven_build.log
+        continue-on-error: false
 
+      # Docker 构建
       - name: Build the Docker image
-        run: docker build --tag liuroy/goodluck-claude-server --file ./DockerFile .
+        run: |
+          docker build --tag liuroy/goodluck-claude-server --file ./DockerFile . | tee docker_build.log
 
+      # Docker 登录
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Docker 推送
       - name: Push Docker image
         run: docker push liuroy/goodluck-claude-server
