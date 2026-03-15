@@ -1,0 +1,64 @@
+name: checkin app ci
+
+# 触发条件，例如推送到主分支
+on:
+  workflow_dispatch:
+    inputs:
+      action_name:
+        description: 'Choose the action to perform'
+        required: true
+        default: 'build'
+        type: string
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # 设置 Maven 缓存
+      - name: Cache Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: maven-cache-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+             maven-cache-${{ runner.os }}-
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4.5.0
+        with:
+          # The Java version to set up. Takes a whole or semver Java version. See examples of supported syntax in README file
+          java-version: 8
+          # The path to the `.java-version` file. See examples of supported syntax in README file
+          distribution: zulu
+
+      # 设置maven setting
+      - name: Configure Maven settings
+        run: |
+          mkdir -p ~/.m2
+          echo "${{ secrets.MAVEN_SETTINGS }}" > ~/.m2/settings.xml 
+
+      # 使用 Maven 构建项目
+      - name: Build with Maven
+        run: mvn clean package -DskipTests -s ~/.m2/settings.xml
+
+      - name: Build the Docker image
+        run: docker build --tag liuroy/goodluck-claude-server --file ./DockerFile .
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Docker image
+        run: |
+          docker push liuroy/goodluck-claude-server
+
