@@ -1,4 +1,4 @@
-name: checkin app ci
+name: claude-server ci
 
 # 触发条件，例如推送到主分支
 on:
