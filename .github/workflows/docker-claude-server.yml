@@ -12,6 +12,7 @@ on:
   push:
     branches:
       - main
+      - feature/frontend-code-tree
 
 jobs:
   build:
