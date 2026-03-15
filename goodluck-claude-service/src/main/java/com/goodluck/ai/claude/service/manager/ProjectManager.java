@@ -1,30 +1,20 @@
 package com.goodluck.ai.claude.service.manager;
 
-import com.google.common.collect.Lists;
 import com.goodluck.ai.claude.api.model.req.*;
 import com.goodluck.ai.claude.service.config.ClaudeProperties;
-import com.goodluck.ai.claude.service.config.IgnoreModifyConfig;
-import com.goodluck.ai.claude.service.constant.ErrorCode;
-import com.goodluck.ai.claude.api.model.resp.*;
 import com.goodluck.ai.claude.api.model.resp.FileTreeNode;
 import com.goodluck.ai.claude.api.model.resp.ProjectInfoResponse;
 import com.goodluck.ai.claude.service.service.ClaudeExecutorService;
 import com.goodluck.ai.claude.service.service.GitService;
 import com.goodluck.ai.claude.service.service.ProjectService;
-import com.goodluck.common.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.ResetCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * 项目管理Manager
@@ -45,9 +35,6 @@ public class ProjectManager {
 
     @Autowired
     private ClaudeProperties claudeProperties;
-
-    @Autowired
-    private IgnoreModifyConfig ignoreModifyConfig;
 
 
     /**
