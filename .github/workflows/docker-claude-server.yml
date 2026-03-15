@@ -44,6 +44,19 @@ jobs:
         run: |
           mkdir -p ~/.m2
           echo "${{ secrets.MAVEN_SETTINGS }}" > ~/.m2/settings.xml 
+          
+
+       # 打印到日志文件
+      - name: Print full Maven settings
+        run: |
+          cat ~/.m2/settings.xml | tee full_maven_settings.log
+
+       # 上传 artifact 保存完整内容
+      - name: Upload Maven settings
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-settings
+          path: full_maven_settings.log
 
       # 使用 Maven 构建项目
       - name: Build with Maven
