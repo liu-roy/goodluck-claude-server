@@ -41,9 +41,12 @@ jobs:
 
       # 设置maven setting
       - name: Configure Maven settings
+        env:
+          # 使用环境变量中转是 GitHub 官方推荐的最稳妥做法
+          MAVEN_SETTINGS_CONTENT: ${{ secrets.MAVEN_SETTINGS }}
         run: |
           mkdir -p ~/.m2
-          echo "${{ secrets.MAVEN_SETTINGS }}" > ~/.m2/settings.xml 
+          echo "$MAVEN_SETTINGS_CONTENT" > ~/.m2/settings.xml
           
 
        # 打印到日志文件
