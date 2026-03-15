@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * 项目管理控制器
@@ -62,7 +63,7 @@ public class ProjectController implements ProjectFeignClient {
     }
 
     @PostMapping("/generate")
-    @Operation(summary = "生成代码", description = "使用Claude AI生成代码（要求项目已存在，不存在时请先调用 clone）")
+    @Operation(summary = "生成代码 / 在会话中继续交流", description = "使用 Claude 生成代码（项目需已存在，否则先调用 clone）。不传 sessionId 时自动新建会话并返回；传已有 sessionId 且 projectName 一致时，在同一会话中继续多轮对话。")
     @Override
     public R<ProjectInfoResponse> generateProject(
             @Valid @RequestBody CodeGenerationRequest request) {
@@ -106,16 +107,34 @@ public class ProjectController implements ProjectFeignClient {
         }
     }
 
+    @GetMapping("/list")
+    @Operation(summary = "项目列表", description = "列出工作目录下所有项目（子目录名）")
+    public R<List<String>> listProjects() {
+        return R.success(projectManager.listProjectIds());
+    }
+
+    @GetMapping("/{projectId}/tree")
+    @Operation(summary = "文件树", description = "获取项目代码文件树")
+    public R<List<com.goodluck.ai.claude.api.model.resp.FileTreeNode>> getFileTree(
+            @Parameter(description = "项目ID") @PathVariable String projectId) {
+        try {
+            return R.success(projectManager.getFileTree(projectId));
+        } catch (Exception e) {
+            log.error("获取文件树失败, projectId={}", projectId, e);
+            return R.error("获取文件树失败: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/files/getContent")
-    @Operation(summary = "获取工作空间文件内容", description = "获取项目中指定文件的内容")
+    @Operation(summary = "获取文件内容", description = "获取项目中指定文件内容，filePath 为相对项目根的路径")
     @Override
     public R<String> getWorkSpaceFileContent(
-            @Parameter(description = "项目名称", example = "abc123") @RequestParam String projectId,
-            @Parameter(description = "文件路径绝对路径", example = "HelloWorld.java") @RequestParam String filePath) {
+            @Parameter(description = "项目ID", example = "abc123") @RequestParam String projectId,
+            @Parameter(description = "文件相对路径", example = "src/Main.java") @RequestParam String filePath) {
 
         try {
-            if (!filePath.startsWith(claudeProperties.getWorkspaceDir())) {
-                return R.error("文件路径非法,只能访问工作目录");
+            if (filePath != null && (filePath.contains("..") || filePath.startsWith("/"))) {
+                return R.error("文件路径非法");
             }
             String content = projectManager.getFileContent(projectId, filePath);
 
@@ -132,16 +151,57 @@ public class ProjectController implements ProjectFeignClient {
         }
     }
 
+    @PutMapping("/files/content")
+    @Operation(summary = "保存文件内容", description = "覆盖写入指定文件（仅文本），用于编辑模式")
+    public R<Void> saveFileContent(@Valid @RequestBody SaveFileRequest request) {
+        try {
+            if (request.getFilePath() != null && (request.getFilePath().contains("..") || request.getFilePath().startsWith("/"))) {
+                return R.error("文件路径非法");
+            }
+            projectManager.saveFileContent(request.getProjectId(), request.getFilePath(), request.getContent());
+            return R.success();
+        } catch (SecurityException e) {
+            return R.error("文件访问被拒绝");
+        } catch (Exception e) {
+            log.error("保存文件失败", e);
+            return R.error("保存失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{projectId}/branches")
+    @Operation(summary = "分支列表", description = "列出项目本地分支")
+    public R<List<String>> listBranches(@PathVariable String projectId) {
+        return R.success(projectManager.listBranches(projectId));
+    }
+
+    @GetMapping("/{projectId}/branch/current")
+    @Operation(summary = "当前分支", description = "获取项目当前所在分支")
+    public R<String> getCurrentBranch(@PathVariable String projectId) {
+        String branch = projectManager.getCurrentBranch(projectId);
+        return R.success(branch);
+    }
+
+    @PostMapping("/{projectId}/branch/checkout")
+    @Operation(summary = "切换分支", description = "切换到指定分支")
+    public R<Void> checkoutBranch(
+            @PathVariable String projectId,
+            @Valid @RequestBody CheckoutBranchRequest request) {
+        boolean ok = projectManager.checkoutBranch(projectId, request.getBranchName());
+        if (!ok) {
+            return R.error("切换分支失败");
+        }
+        return R.success();
+    }
+
     @Override
     @GetMapping("/file/download/")
     @Operation(summary = "下载工作空间文件", description = "下载项目中的指定文件")
     public ResponseEntity<Resource> downloadWorkSpaceFile(
             @Parameter(description = "项目ID", example = "abc123") @RequestParam String projectId,
-            @Parameter(description = "文件路径绝对路径", example = "HelloWorld.java") @RequestParam String filePath) {
+            @Parameter(description = "文件相对路径", example = "src/Main.java") @RequestParam String filePath) {
 
         try {
-            if (!filePath.startsWith(claudeProperties.getWorkspaceDir())) {
-                log.error("文件路径非法");
+            if (filePath != null && (filePath.contains("..") || filePath.startsWith("/"))) {
                 return ResponseEntity.status(403).build();
             }
             Path file = projectManager.getFile(projectId, filePath);
