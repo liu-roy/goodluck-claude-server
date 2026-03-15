@@ -20,38 +20,71 @@
     .toolbar .btn-secondary { background: #3c3c3c; color: #ccc; border: 1px solid #555; }
     .toolbar .btn-secondary:hover { background: #505050; color: #fff; }
     .toolbar .group { display: flex; align-items: center; gap: 6px; }
-    .toolbar .mode-btn { padding: 5px 10px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 13px; }
-    .toolbar .mode-btn:hover { background: #505050; color: #fff; }
-    .toolbar .mode-btn.active { background: #007acc; color: #fff; border-color: #007acc; }
 
-    /* ===== 主区域：三栏 ===== */
+    /* ===== 主区域 ===== */
     .main { display: flex; flex: 1; min-height: 0; }
 
-    /* 文件树 */
-    .tree-panel { width: 260px; min-width: 180px; overflow: auto; background: #252526; border-right: 1px solid #3c3c3c; padding: 8px 0; flex-shrink: 0; }
-    .tree-panel .placeholder { padding: 16px; color: #888; }
-    .tree-item { padding: 4px 12px; cursor: pointer; white-space: nowrap; border-radius: 4px; }
-    .tree-item.dir { display: block; padding-left: 0; }
-    .tree-item.dir .row { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 4px; }
-    .tree-item.dir:hover .row { background: #2a2d2e; }
-    .tree-item.file { display: flex; align-items: center; gap: 6px; padding-left: 12px; }
-    .tree-item.file:hover { background: #2a2d2e; }
-    .tree-item .icon { font-size: 16px; width: 18px; text-align: center; flex-shrink: 0; }
-    .tree-item.dir .icon { color: #e8ab53; }
-    .tree-item.file .icon { color: #9cdcfe; }
-    .tree-item.dir.collapsed .tree-children { display: none; }
-    .tree-item.dir .arrow { margin-right: 2px; transition: transform .15s; flex-shrink: 0; }
-    .tree-item.dir.collapsed .arrow { transform: rotate(-90deg); }
-    .tree-children { margin-left: 12px; }
+    /* ===== 文件树面板 ===== */
+    .tree-panel { width: 280px; min-width: 200px; display: flex; flex-direction: column; background: #252526; border-right: 1px solid #3c3c3c; flex-shrink: 0; }
+    .tree-panel .panel-head { padding: 10px 12px 0; font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .5px; flex-shrink: 0; }
+    .tree-search { padding: 8px 10px; flex-shrink: 0; }
+    .tree-search input { width: 100%; padding: 6px 10px 6px 30px; background: #3c3c3c; color: #d4d4d4; border: 1px solid #555; border-radius: 6px; font-size: 12px; outline: none; transition: border-color .15s; }
+    .tree-search input:focus { border-color: #007acc; }
+    .tree-search { position: relative; }
+    .tree-search .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #888; font-size: 13px; pointer-events: none; }
+    .tree-body { flex: 1; overflow-y: auto; padding: 2px 0 8px; }
+    .tree-body::-webkit-scrollbar { width: 6px; }
+    .tree-body::-webkit-scrollbar-track { background: transparent; }
+    .tree-body::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+    .tree-panel .placeholder { padding: 20px 16px; color: #666; font-size: 13px; text-align: center; }
 
-    /* 内容区 */
+    /* 文件树节点 */
+    .t-node { user-select: none; }
+    .t-row { display: flex; align-items: center; gap: 4px; padding: 3px 10px; cursor: pointer; border-radius: 4px; margin: 0 4px; font-size: 13px; transition: background .1s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-row:hover { background: #2a2d2e; }
+    .t-row.active { background: #37373d; }
+    .t-row .t-indent { flex-shrink: 0; }
+    .t-row .t-arrow { width: 16px; text-align: center; flex-shrink: 0; font-size: 10px; color: #888; transition: transform .12s; }
+    .t-row .t-arrow.collapsed { transform: rotate(-90deg); }
+    .t-row .t-arrow.empty { visibility: hidden; }
+    .t-row .t-icon { width: 18px; text-align: center; flex-shrink: 0; font-size: 14px; }
+    .t-row .t-icon.dir { color: #dcb67a; }
+    .t-row .t-icon.file { color: #8dc6f4; }
+    .t-row .t-icon.java { color: #e76f00; }
+    .t-row .t-icon.xml { color: #e37933; }
+    .t-row .t-icon.yml { color: #cb171e; }
+    .t-row .t-icon.json { color: #f5de19; }
+    .t-row .t-icon.md { color: #519aba; }
+    .t-row .t-icon.html { color: #e44d26; }
+    .t-row .t-icon.css { color: #563d7c; }
+    .t-row .t-icon.js { color: #f5de19; }
+    .t-row .t-icon.ts { color: #3178c6; }
+    .t-row .t-icon.sh { color: #4eaa25; }
+    .t-row .t-icon.sql { color: #e38c00; }
+    .t-row .t-icon.properties { color: #b07219; }
+    .t-row .t-name { overflow: hidden; text-overflow: ellipsis; color: #ccc; }
+    .t-children { overflow: hidden; }
+    .t-children.collapsed { display: none; }
+
+    /* 搜索结果 */
+    .search-result { display: flex; flex-direction: column; gap: 1px; padding: 4px 0; }
+    .search-result .sr-item { display: flex; align-items: center; gap: 6px; padding: 5px 12px; cursor: pointer; border-radius: 4px; margin: 0 4px; font-size: 12px; transition: background .1s; }
+    .search-result .sr-item:hover { background: #2a2d2e; }
+    .search-result .sr-item .t-icon { width: 16px; text-align: center; flex-shrink: 0; font-size: 13px; }
+    .search-result .sr-item .sr-name { color: #d4d4d4; }
+    .search-result .sr-item .sr-name mark { background: transparent; color: #e8ab53; font-weight: 600; }
+    .search-result .sr-item .sr-path { color: #666; font-size: 11px; margin-left: auto; padding-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50%; direction: rtl; text-align: left; }
+    .search-result .sr-empty { padding: 16px; text-align: center; color: #666; font-size: 12px; }
+
+    /* ===== 内容区 ===== */
     .content-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #1e1e1e; }
-    .content-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #252526; border-bottom: 1px solid #3c3c3c; color: #888; font-size: 12px; gap: 12px; }
-    .content-toolbar .path { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-    .content-toolbar .actions { display: none; gap: 6px; }
-    .content-toolbar .actions button { padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .content-toolbar .actions .save-btn { background: #0e639c; color: #fff; }
-    .content-toolbar .actions .cancel-btn { background: #555; color: #ccc; }
+    .content-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #252526; border-bottom: 1px solid #3c3c3c; color: #888; font-size: 12px; gap: 8px; }
+    .content-toolbar .path { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .content-toolbar .ct-actions { display: flex; gap: 6px; align-items: center; }
+    .content-toolbar .ct-btn { padding: 3px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; background: #3c3c3c; color: #ccc; border: 1px solid #555; }
+    .content-toolbar .ct-btn:hover { background: #505050; color: #fff; }
+    .content-toolbar .ct-btn.primary { background: #0e639c; color: #fff; border-color: #0e639c; }
+    .content-toolbar .ct-btn.primary:hover { background: #1177bb; }
     .content-body { flex: 1; overflow: auto; padding: 16px; }
     .content-body pre { margin: 0; white-space: pre-wrap; word-break: break-all; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.5; }
     .content-body textarea.editor { width: 100%; height: 100%; min-height: 200px; padding: 12px; background: #1e1e1e; color: #d4d4d4; border: 1px solid #3c3c3c; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.5; resize: none; }
@@ -62,23 +95,16 @@
     /* ===== 右侧聊天面板 ===== */
     .chat-panel { width: 420px; min-width: 320px; display: none; flex-direction: column; background: #1e1e1e; border-left: 1px solid #3c3c3c; flex-shrink: 0; }
     .chat-panel.visible { display: flex; }
-
-    /* Tab 栏 */
     .chat-tabs { display: flex; background: #252526; border-bottom: 1px solid #3c3c3c; flex-shrink: 0; }
     .chat-tab { flex: 1; padding: 10px 0; text-align: center; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; user-select: none; }
     .chat-tab:hover { color: #d4d4d4; }
     .chat-tab.active { color: #d4d4d4; border-bottom-color: #007acc; font-weight: 500; }
-
-    /* -- 对话视图 -- */
     .chat-view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     .chat-view.hidden { display: none; }
-
     .chat-messages { flex: 1; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 16px; }
     .chat-messages::-webkit-scrollbar { width: 6px; }
     .chat-messages::-webkit-scrollbar-track { background: transparent; }
     .chat-messages::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-    .chat-messages::-webkit-scrollbar-thumb:hover { background: #555; }
-
     .chat-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: #555; gap: 8px; padding: 40px 20px; text-align: center; }
     .chat-empty .icon { font-size: 36px; opacity: .5; }
     .chat-empty .text { font-size: 13px; line-height: 1.6; }
@@ -109,6 +135,7 @@
     /* 输入区 */
     .chat-input-area { padding: 12px 14px; background: #252526; border-top: 1px solid #3c3c3c; flex-shrink: 0; }
     .chat-input-wrap { display: flex; align-items: flex-end; gap: 8px; background: #3c3c3c; border: 1px solid #555; border-radius: 10px; padding: 8px 10px; transition: border-color .2s; }
+    .chat-input-wrap.disabled { opacity: .5; pointer-events: none; }
     .chat-input-wrap:focus-within { border-color: #007acc; }
     .chat-input-wrap textarea { flex: 1; background: transparent; color: #d4d4d4; border: none; outline: none; font-size: 13px; font-family: inherit; line-height: 1.5; resize: none; min-height: 22px; max-height: 120px; }
     .chat-input-wrap .send-btn { width: 32px; height: 32px; border-radius: 50%; background: #0e639c; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s, transform .1s; }
@@ -120,14 +147,13 @@
     .chat-status.ok { color: #4ec9b0; }
     .chat-status.err { color: #f48771; }
 
-    /* 加载动画 */
     .typing-indicator { display: inline-flex; gap: 4px; padding: 12px 16px; }
     .typing-indicator span { width: 6px; height: 6px; background: #888; border-radius: 50%; animation: typing .8s infinite; }
     .typing-indicator span:nth-child(2) { animation-delay: .15s; }
     .typing-indicator span:nth-child(3) { animation-delay: .3s; }
     @keyframes typing { 0%,60%,100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-4px); } }
 
-    /* -- 会话记录视图 -- */
+    /* 会话记录视图 */
     .history-view { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .history-view.hidden { display: none; }
     .history-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid #3c3c3c; background: #252526; flex-shrink: 0; }
@@ -138,7 +164,6 @@
     .history-list::-webkit-scrollbar { width: 6px; }
     .history-list::-webkit-scrollbar-track { background: transparent; }
     .history-list::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-
     .session-card { display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #2a2a2a; transition: background .12s; }
     .session-card:hover { background: #2a2d2e; }
     .session-card .s-icon { width: 36px; height: 36px; border-radius: 8px; background: #333; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
@@ -150,7 +175,7 @@
     .session-card .s-btn:hover { background: #1177bb; }
     .history-empty { padding: 40px 20px; text-align: center; color: #555; font-size: 13px; }
 
-    /* ===== 克隆项目弹窗 ===== */
+    /* ===== 克隆弹窗 ===== */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1100; display: none; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
     .modal { width: 440px; max-width: 90vw; background: #252526; border: 1px solid #3c3c3c; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,.4); }
@@ -175,7 +200,6 @@
     .modal .clone-status.ok { color: #4ec9b0; }
     .modal .clone-status.err { color: #f48771; }
 
-    /* ===== 拖拽分隔线 ===== */
     .resize-handle { width: 4px; cursor: col-resize; background: transparent; flex-shrink: 0; position: relative; z-index: 2; transition: background .15s; }
     .resize-handle:hover, .resize-handle.active { background: #007acc; }
   </style>
@@ -198,84 +222,61 @@
     <label>分支</label>
     <select id="selBranch"><option value="">--</option></select>
   </div>
-  <div class="group">
-    <button class="mode-btn active" id="btnView">查看</button>
-    <button class="mode-btn" id="btnEdit">编辑</button>
-  </div>
   <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
     <span style="font-size:12px; color:#888;" id="userLabel"></span>
     <button class="btn btn-secondary" id="btnLogout" style="font-size:12px;">退出</button>
   </div>
 </div>
 
-<!-- 克隆项目弹窗 -->
+<!-- 克隆弹窗 -->
 <div class="modal-overlay" id="cloneOverlay">
   <div class="modal">
-    <div class="modal-head">
-      <h3>克隆 Git 项目</h3>
-      <button class="close" id="btnCloneClose">关闭</button>
-    </div>
+    <div class="modal-head"><h3>克隆 Git 项目</h3><button class="close" id="btnCloneClose">关闭</button></div>
     <div class="modal-body">
-      <div class="field">
-        <label>Git 仓库地址 *</label>
-        <input type="text" id="cloneGitUrl" placeholder="https://github.com/user/repo.git">
-      </div>
-      <div class="field">
-        <label>分支</label>
-        <input type="text" id="cloneBranch" placeholder="留空默认主分支">
-      </div>
-      <div class="field">
-        <label>项目目录名</label>
-        <input type="text" id="cloneProjectName" placeholder="留空则从 URL 自动解析">
-        <div class="hint">克隆后在项目列表中显示的名称</div>
-      </div>
-      <div class="field">
-        <label>Git 用户名</label>
-        <input type="text" id="cloneUsername" placeholder="私有仓库填写">
-      </div>
-      <div class="field">
-        <label>Git 密码 / Token</label>
-        <input type="password" id="clonePassword" placeholder="私有仓库填写">
-      </div>
+      <div class="field"><label>Git 仓库地址 *</label><input type="text" id="cloneGitUrl" placeholder="https://github.com/user/repo.git"></div>
+      <div class="field"><label>分支</label><input type="text" id="cloneBranch" placeholder="留空默认主分支"></div>
+      <div class="field"><label>项目目录名</label><input type="text" id="cloneProjectName" placeholder="留空则从 URL 自动解析"><div class="hint">克隆后在项目列表中显示的名称</div></div>
+      <div class="field"><label>Git 用户名</label><input type="text" id="cloneUsername" placeholder="私有仓库填写"></div>
+      <div class="field"><label>Git 密码 / Token</label><input type="password" id="clonePassword" placeholder="私有仓库填写"></div>
     </div>
     <div class="clone-status" id="cloneStatus"></div>
-    <div class="modal-foot">
-      <button class="btn-cancel" id="btnCloneCancel">取消</button>
-      <button class="btn-ok" id="btnCloneOk">克隆</button>
-    </div>
+    <div class="modal-foot"><button class="btn-cancel" id="btnCloneCancel">取消</button><button class="btn-ok" id="btnCloneOk">克隆</button></div>
   </div>
 </div>
 
-<!-- 主区域：文件树 | 编辑器 | 聊天面板 -->
+<!-- 主区域 -->
 <div class="main">
+  <!-- 文件树 -->
   <div class="tree-panel" id="treePanel">
-    <div class="placeholder" id="treePlaceholder">请先选择项目</div>
-    <div id="treeRoot" style="display:none;"></div>
+    <div class="panel-head">资源管理器</div>
+    <div class="tree-search" id="treeSearchWrap" style="display:none;">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="treeSearchInput" placeholder="搜索文件名…">
+    </div>
+    <div class="tree-body" id="treeBody">
+      <div class="placeholder" id="treePlaceholder">请先选择项目</div>
+      <div id="treeRoot" style="display:none;"></div>
+      <div class="search-result" id="searchResult" style="display:none;"></div>
+    </div>
   </div>
 
+  <!-- 内容区 -->
   <div class="content-panel">
     <div class="content-toolbar">
       <span class="path" id="filePath">未选择文件</span>
-      <div class="actions" id="editActions">
-        <button class="save-btn" id="btnSaveFile">保存</button>
-        <button class="cancel-btn" id="btnCancelEdit">取消</button>
-      </div>
+      <div class="ct-actions" id="ctActions"></div>
     </div>
     <div class="content-body" id="contentBody"><span class="hint">点击左侧文件查看内容</span></div>
   </div>
 
   <div class="resize-handle" id="chatResizer"></div>
 
-  <!-- 右侧聊天面板（内含 对话 / 会话记录 两个 Tab） -->
+  <!-- 聊天面板 -->
   <div class="chat-panel" id="chatPanel">
-
-    <!-- Tab 切换 -->
     <div class="chat-tabs">
       <div class="chat-tab active" id="tabChat">对话</div>
       <div class="chat-tab" id="tabHistory">会话记录</div>
     </div>
-
-    <!-- Tab 1: 对话 -->
     <div class="chat-view" id="viewChat">
       <div class="chat-messages" id="chatMessages">
         <div class="chat-empty" id="chatEmpty">
@@ -284,7 +285,7 @@
         </div>
       </div>
       <div class="chat-input-area">
-        <div class="chat-input-wrap">
+        <div class="chat-input-wrap" id="inputWrap">
           <textarea id="txtPrompt" rows="1" placeholder="输入需求，按 Enter 发送…"></textarea>
           <button class="send-btn" id="btnSend" title="发送">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -293,8 +294,6 @@
         <div class="chat-status" id="sendStatus"></div>
       </div>
     </div>
-
-    <!-- Tab 2: 会话记录 -->
     <div class="history-view hidden" id="viewHistory">
       <div class="history-toolbar">
         <span class="tip">点击「继续」回到对话并加载历史</span>
@@ -312,22 +311,22 @@ const $ = id => document.getElementById(id);
 const selProject = $('selProject'), selSession = $('selSession'), selBranch = $('selBranch');
 const branchGroup = $('branchGroup');
 const chatPanel = $('chatPanel'), chatMessages = $('chatMessages'), chatEmpty = $('chatEmpty');
-const txtPrompt = $('txtPrompt'), btnSend = $('btnSend'), sendStatus = $('sendStatus');
+const txtPrompt = $('txtPrompt'), btnSend = $('btnSend'), sendStatus = $('sendStatus'), inputWrap = $('inputWrap');
 const treePlaceholder = $('treePlaceholder'), treeRoot = $('treeRoot');
-const filePath = $('filePath'), editActions = $('editActions'), contentBody = $('contentBody');
-const btnView = $('btnView'), btnEdit = $('btnEdit');
-
+const treeSearchWrap = $('treeSearchWrap'), treeSearchInput = $('treeSearchInput'), searchResult = $('searchResult');
+const filePath = $('filePath'), ctActions = $('ctActions'), contentBody = $('contentBody');
 const tabChat = $('tabChat'), tabHistory = $('tabHistory');
 const viewChat = $('viewChat'), viewHistory = $('viewHistory');
 const historyList = $('historyList'), historyEmpty = $('historyEmpty');
 
-let mode = 'view', curFile = null, curContent = '';
+let curFile = null, curContent = '', editMode = false;
+let isSending = false;
+let allFiles = [];
 
-// ===== 登录态检查 =====
 const _token = localStorage.getItem('token');
 if (!_token) { location.href = '/login.html'; }
 
-// ===== API 工具 =====
+// ===== API =====
 async function api(method, path, body) {
   const token = localStorage.getItem('token');
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -342,7 +341,7 @@ async function api(method, path, body) {
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function logout() { localStorage.clear(); location.href = '/login.html'; }
 
-// ===== Tab 切换 =====
+// ===== Tab =====
 function switchTab(tab) {
   const isChat = tab === 'chat';
   tabChat.classList.toggle('active', isChat);
@@ -354,7 +353,7 @@ function switchTab(tab) {
 tabChat.onclick = () => switchTab('chat');
 tabHistory.onclick = () => switchTab('history');
 
-// ===== 简单 Markdown =====
+// ===== Markdown =====
 function renderMd(text) {
   if (!text) return '';
   let s = esc(text);
@@ -385,7 +384,6 @@ function createBubble(role, content, time) {
   row.appendChild(body);
   return row;
 }
-
 function showTypingIndicator() {
   const row = document.createElement('div');
   row.className = 'bubble-row assistant'; row.id = 'typingRow';
@@ -423,14 +421,12 @@ async function loadSessions() {
     if (cur) selSession.value = cur;
   } catch(e) { selSession.innerHTML = '<option value="">加载失败</option>'; }
 }
-
 $('btnNewSession').onclick = async () => {
   try {
     const d = await api('POST', '/sessions', {});
     await loadSessions();
     if (d.data && d.data.sessionId) selSession.value = d.data.sessionId;
-    loadMessages();
-    switchTab('chat');
+    loadMessages(); switchTab('chat');
   } catch(e) { alert('新建会话失败: '+e.message); }
 };
 
@@ -459,83 +455,216 @@ selBranch.onchange = async () => {
   } catch(e) { alert('切换分支失败: '+e.message); }
 };
 
+// ===== 文件图标 =====
+const FILE_ICONS = {
+  java: ['☕', 'java'], xml: ['📋', 'xml'], yml: ['⚙', 'yml'], yaml: ['⚙', 'yml'],
+  json: ['{ }', 'json'], md: ['📝', 'md'], html: ['🌐', 'html'], htm: ['🌐', 'html'],
+  css: ['🎨', 'css'], js: ['JS', 'js'], ts: ['TS', 'ts'], jsx: ['⚛', 'js'], tsx: ['⚛', 'ts'],
+  sh: ['$_', 'sh'], bat: ['$_', 'sh'], sql: ['🗃', 'sql'],
+  properties: ['⚙', 'properties'], gradle: ['🐘', 'file'], py: ['🐍', 'file'],
+  go: ['🔵', 'file'], rs: ['🦀', 'file'], txt: ['📄', 'file'],
+};
+function fileIcon(name) {
+  const ext = (name.lastIndexOf('.') > 0) ? name.slice(name.lastIndexOf('.') + 1).toLowerCase() : '';
+  const cfg = FILE_ICONS[ext];
+  if (cfg) return { text: cfg[0], cls: cfg[1] };
+  if (name === 'Dockerfile' || name === 'DockerFile') return { text: '🐳', cls: 'file' };
+  if (name === 'Makefile') return { text: '⚙', cls: 'file' };
+  if (name === '.gitignore' || name === '.editorconfig') return { text: '⚙', cls: 'properties' };
+  return { text: '📄', cls: 'file' };
+}
+
 // ===== 文件树 =====
+let treeData = [];
 async function loadTree(pid) {
   treePlaceholder.style.display = 'none';
   treeRoot.style.display = 'block';
   treeRoot.innerHTML = '<div class="placeholder">加载中…</div>';
+  treeSearchWrap.style.display = 'block';
+  treeSearchInput.value = '';
+  searchResult.style.display = 'none';
+  treeRoot.style.display = 'block';
   try {
     const d = await api('GET', `/projects/${encodeURIComponent(pid)}/tree`);
+    treeData = d.data || [];
+    allFiles = [];
+    flattenFiles(treeData, '');
     treeRoot.innerHTML = '';
-    renderTree(d.data || [], treeRoot);
+    renderTree(treeData, treeRoot, 0);
   } catch(e) { treeRoot.innerHTML = '<div class="placeholder error">'+esc(e.message)+'</div>'; }
 }
-function renderTree(nodes, parent) {
+
+function flattenFiles(nodes, prefix) {
   nodes.forEach(n => {
-    const div = document.createElement('div');
-    div.className = 'tree-item ' + (n.dir ? 'dir' : 'file');
     if (n.dir) {
-      const row = document.createElement('div'); row.className = 'row';
-      row.innerHTML = (n.children&&n.children.length ? '<span class="arrow">▼</span>' : '') + `<span class="icon">📁</span><span>${esc(n.name)}</span>`;
-      div.appendChild(row);
-      if (n.children && n.children.length) {
-        const ch = document.createElement('div'); ch.className = 'tree-children';
-        renderTree(n.children, ch);
-        div.appendChild(ch);
-        row.onclick = () => div.classList.toggle('collapsed');
-      }
+      flattenFiles(n.children || [], prefix ? prefix + '/' + n.name : n.name);
     } else {
-      div.innerHTML = `<span class="icon">📄</span><span>${esc(n.name)}</span>`;
-      div.onclick = e => { e.stopPropagation(); openFile(n.path); };
+      allFiles.push({ name: n.name, path: n.path || (prefix ? prefix + '/' + n.name : n.name) });
     }
-    parent.appendChild(div);
   });
 }
+
+function renderTree(nodes, parent, depth) {
+  nodes.forEach(n => {
+    const node = document.createElement('div');
+    node.className = 't-node';
+    const row = document.createElement('div');
+    row.className = 't-row';
+    if (n.path && n.path === curFile) row.classList.add('active');
+
+    const indent = document.createElement('span');
+    indent.className = 't-indent';
+    indent.style.width = (depth * 16) + 'px';
+    row.appendChild(indent);
+
+    if (n.dir) {
+      const hasKids = n.children && n.children.length;
+      const arrow = document.createElement('span');
+      arrow.className = 't-arrow' + (hasKids ? '' : ' empty');
+      arrow.textContent = '▾';
+      row.appendChild(arrow);
+
+      const icon = document.createElement('span');
+      icon.className = 't-icon dir';
+      icon.textContent = '📁';
+      row.appendChild(icon);
+
+      const name = document.createElement('span');
+      name.className = 't-name';
+      name.textContent = n.name;
+      row.appendChild(name);
+      node.appendChild(row);
+
+      if (hasKids) {
+        const children = document.createElement('div');
+        children.className = 't-children';
+        renderTree(n.children, children, depth + 1);
+        node.appendChild(children);
+        row.onclick = () => {
+          const collapsed = children.classList.toggle('collapsed');
+          arrow.classList.toggle('collapsed', collapsed);
+        };
+      }
+    } else {
+      const arrow = document.createElement('span');
+      arrow.className = 't-arrow empty';
+      row.appendChild(arrow);
+
+      const fi = fileIcon(n.name);
+      const icon = document.createElement('span');
+      icon.className = 't-icon ' + fi.cls;
+      icon.textContent = fi.text;
+      row.appendChild(icon);
+
+      const name = document.createElement('span');
+      name.className = 't-name';
+      name.textContent = n.name;
+      row.appendChild(name);
+      node.appendChild(row);
+
+      row.onclick = () => {
+        document.querySelectorAll('.t-row.active').forEach(r => r.classList.remove('active'));
+        row.classList.add('active');
+        openFile(n.path);
+      };
+    }
+    parent.appendChild(node);
+  });
+}
+
+// ===== 文件搜索 =====
+treeSearchInput.addEventListener('input', () => {
+  const q = treeSearchInput.value.trim().toLowerCase();
+  if (!q) {
+    searchResult.style.display = 'none';
+    treeRoot.style.display = 'block';
+    return;
+  }
+  treeRoot.style.display = 'none';
+  searchResult.style.display = 'block';
+  searchResult.innerHTML = '';
+
+  const matches = allFiles.filter(f => f.name.toLowerCase().includes(q) || f.path.toLowerCase().includes(q));
+  if (!matches.length) {
+    searchResult.innerHTML = '<div class="sr-empty">未找到匹配文件</div>';
+    return;
+  }
+  matches.slice(0, 50).forEach(f => {
+    const item = document.createElement('div');
+    item.className = 'sr-item';
+    const fi = fileIcon(f.name);
+    const highlighted = f.name.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+    const dir = f.path.includes('/') ? f.path.slice(0, f.path.lastIndexOf('/')) : '';
+    item.innerHTML = `<span class="t-icon ${fi.cls}">${fi.text}</span><span class="sr-name">${highlighted}</span>` +
+      (dir ? `<span class="sr-path">${esc(dir)}</span>` : '');
+    item.onclick = () => {
+      openFile(f.path);
+      treeSearchInput.value = '';
+      searchResult.style.display = 'none';
+      treeRoot.style.display = 'block';
+      document.querySelectorAll('.t-row.active').forEach(r => r.classList.remove('active'));
+    };
+    searchResult.appendChild(item);
+  });
+});
 
 // ===== 文件查看/编辑 =====
 async function openFile(path) {
   const pid = selProject.value; if (!pid) return;
-  curFile = path; filePath.textContent = path;
+  curFile = path; editMode = false;
+  filePath.textContent = path;
   contentBody.innerHTML = '<span class="hint">加载中…</span>';
-  editActions.style.display = 'none';
+  updateCtActions();
   try {
     const d = await api('GET', `/projects/files/getContent?projectId=${encodeURIComponent(pid)}&filePath=${encodeURIComponent(path)}`);
     curContent = typeof d.data === 'string' ? d.data : '';
     showContent();
   } catch(e) { contentBody.innerHTML = '<span class="error">'+esc(e.message)+'</span>'; }
 }
+
 function showContent() {
   if (!curFile) return;
-  if (mode === 'edit') {
+  if (editMode) {
     contentBody.innerHTML = '';
     const ta = document.createElement('textarea'); ta.className = 'editor'; ta.value = curContent;
     contentBody.appendChild(ta);
-    editActions.style.display = 'flex';
   } else {
     contentBody.innerHTML = '<pre>'+esc(curContent)+'</pre>';
-    editActions.style.display = 'none';
+  }
+  updateCtActions();
+}
+
+function updateCtActions() {
+  ctActions.innerHTML = '';
+  if (!curFile) return;
+  if (editMode) {
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'ct-btn primary'; saveBtn.textContent = '保存';
+    saveBtn.onclick = saveFile;
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'ct-btn'; cancelBtn.textContent = '取消';
+    cancelBtn.onclick = () => { editMode = false; showContent(); };
+    ctActions.appendChild(saveBtn);
+    ctActions.appendChild(cancelBtn);
+  } else {
+    const editBtn = document.createElement('button');
+    editBtn.className = 'ct-btn'; editBtn.textContent = '编辑';
+    editBtn.onclick = () => { editMode = true; showContent(); };
+    ctActions.appendChild(editBtn);
   }
 }
-function setMode(m) {
-  mode = m;
-  btnView.classList.toggle('active', m==='view');
-  btnEdit.classList.toggle('active', m==='edit');
-  if (curFile) showContent();
-}
-btnView.onclick = () => setMode('view');
-btnEdit.onclick = () => setMode('edit');
-$('btnSaveFile').onclick = async () => {
+
+async function saveFile() {
   const pid = selProject.value; if (!pid || !curFile) return;
   const ta = contentBody.querySelector('textarea.editor');
   try {
     await api('PUT', '/projects/files/content', { projectId: pid, filePath: curFile, content: ta ? ta.value : '' });
     curContent = ta ? ta.value : '';
-    setMode('view');
+    editMode = false; showContent();
   } catch(e) { alert('保存失败: '+e.message); }
-};
-$('btnCancelEdit').onclick = () => setMode('view');
+}
 
-// ===== 对话历史加载 =====
+// ===== 对话历史 =====
 async function loadMessages() {
   const sid = selSession.value, pid = selProject.value;
   chatMessages.querySelectorAll('.bubble-row').forEach(e => e.remove());
@@ -551,20 +680,26 @@ async function loadMessages() {
   } catch(e) { chatEmpty.querySelector('.text').innerHTML = '加载对话失败'; }
 }
 
-// ===== 发送 =====
+// ===== 发送（带防重锁）=====
 btnSend.onclick = sendMessage;
 async function sendMessage() {
+  if (isSending) { sendStatus.textContent = '正在处理中，请等待当前请求完成…'; sendStatus.className = 'chat-status err'; return; }
   const pid = selProject.value, sid = selSession.value || undefined, prompt = (txtPrompt.value||'').trim();
   if (!pid) { sendStatus.textContent = '请先选择项目'; sendStatus.className = 'chat-status err'; return; }
   if (!prompt) { sendStatus.textContent = '请输入需求'; sendStatus.className = 'chat-status err'; return; }
+
+  isSending = true;
+  btnSend.disabled = true;
+  inputWrap.classList.add('disabled');
+  txtPrompt.disabled = true;
   switchTab('chat');
   chatEmpty.style.display = 'none';
   chatMessages.appendChild(createBubble('user', prompt, new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'})));
   scrollToBottom();
   txtPrompt.value = ''; autoResizeTextarea();
-  btnSend.disabled = true;
   sendStatus.textContent = ''; sendStatus.className = 'chat-status';
   showTypingIndicator();
+
   try {
     const d = await api('POST', '/projects/generate', { projectName: pid, prompt, sessionId: sid || null });
     hideTypingIndicator();
@@ -587,7 +722,12 @@ async function sendMessage() {
     hideTypingIndicator();
     sendStatus.textContent = '失败: '+e.message; sendStatus.className = 'chat-status err';
   }
+
+  isSending = false;
   btnSend.disabled = false;
+  inputWrap.classList.remove('disabled');
+  txtPrompt.disabled = false;
+  txtPrompt.focus();
 }
 
 function autoResizeTextarea() {
@@ -602,13 +742,15 @@ txtPrompt.addEventListener('keydown', e => {
 // ===== 项目/会话切换 =====
 selProject.onchange = () => {
   const pid = selProject.value;
-  curFile = null; filePath.textContent = '未选择文件';
+  curFile = null; editMode = false;
+  filePath.textContent = '未选择文件';
   contentBody.innerHTML = '<span class="hint">点击左侧文件查看内容</span>';
-  editActions.style.display = 'none';
+  ctActions.innerHTML = '';
   sendStatus.textContent = '';
   chatPanel.classList.toggle('visible', !!pid);
   if (!pid) {
     treePlaceholder.style.display = 'block'; treeRoot.style.display = 'none';
+    treeSearchWrap.style.display = 'none';
     branchGroup.style.display = 'none';
     return;
   }
@@ -617,7 +759,7 @@ selProject.onchange = () => {
 };
 selSession.onchange = () => { loadMessages(); switchTab('chat'); };
 
-// ===== 会话记录（内嵌在 Tab 2 中）=====
+// ===== 会话记录 =====
 async function renderHistory() {
   historyList.innerHTML = '';
   historyEmpty.style.display = 'none';
@@ -648,15 +790,13 @@ function resumeSession(s) {
     selProject.dispatchEvent(new Event('change'));
   }
   selSession.value = s.sessionId || '';
-  loadMessages();
-  switchTab('chat');
+  loadMessages(); switchTab('chat');
   setTimeout(() => txtPrompt.focus(), 100);
 }
 $('btnRefreshHistory').onclick = () => { renderHistory(); loadSessions(); };
 
-// ===== 克隆项目 =====
-const cloneOverlay = $('cloneOverlay'), cloneStatus = $('cloneStatus');
-const btnCloneOk = $('btnCloneOk');
+// ===== 克隆 =====
+const cloneOverlay = $('cloneOverlay'), cloneStatus = $('cloneStatus'), btnCloneOk = $('btnCloneOk');
 function openCloneModal() { cloneOverlay.classList.add('open'); cloneStatus.textContent = ''; cloneStatus.className = 'clone-status'; }
 function closeCloneModal() { cloneOverlay.classList.remove('open'); }
 $('btnCloneProject').onclick = openCloneModal;
@@ -667,10 +807,8 @@ btnCloneOk.onclick = async () => {
   const gitUrl = $('cloneGitUrl').value.trim();
   if (!gitUrl) { cloneStatus.textContent = '请输入 Git 仓库地址'; cloneStatus.className = 'clone-status err'; return; }
   const body = { gitUrl };
-  const branch = $('cloneBranch').value.trim();
-  const projectName = $('cloneProjectName').value.trim();
-  const gitUsername = $('cloneUsername').value.trim();
-  const gitPassword = $('clonePassword').value;
+  const branch = $('cloneBranch').value.trim(), projectName = $('cloneProjectName').value.trim();
+  const gitUsername = $('cloneUsername').value.trim(), gitPassword = $('clonePassword').value;
   if (branch) body.branch = branch;
   if (projectName) body.projectName = projectName;
   if (gitUsername) body.gitUsername = gitUsername;
@@ -688,7 +826,7 @@ btnCloneOk.onclick = async () => {
   btnCloneOk.disabled = false;
 };
 
-// ===== 拖拽调宽 =====
+// ===== 拖拽 =====
 (function() {
   const handle = $('chatResizer');
   let startX, startW;
@@ -702,11 +840,9 @@ btnCloneOk.onclick = async () => {
   });
 })();
 
-// ===== 登出 & 用户名 =====
 $('btnLogout').onclick = logout;
 $('userLabel').textContent = localStorage.getItem('userName') || '';
 
-// ===== 初始化 =====
 loadProjects(); loadSessions();
 </script>
 </body>
