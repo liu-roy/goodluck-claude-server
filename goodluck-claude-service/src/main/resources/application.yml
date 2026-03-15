@@ -107,11 +107,11 @@ springdoc:
 # 登录配置
 goodluck:
   login:
-    enabled: false
+    enabled: true
     path: /login
     token-expire-seconds: 86400
     jwt-secret: goodluck-claude-server-jwt-secret-2026
-    whitelist: /actuator/**,/error,/swagger-ui/**,/v3/api-docs/**,/doc.html,/login,/login.html,/workspace.html,/favicon.ico,/h2-console/**
+    whitelist: /actuator/**,/error,/swagger-ui/**,/swagger-ui.html,/swagger-resources/**,/v3/api-docs/**,/doc.html,/webjars/**,/login,/login.html,/workspace.html,/favicon.ico,/h2-console/**
     users:
       - username: admin
         password: admin123
