@@ -248,14 +248,7 @@ public class ClaudeExecutorService {
      */
     private Path getProjectWorkingDirectory(String projectId) {
         Path workspaceDir = Paths.get(claudeProperties.getWorkspaceDir());
-        Path projectDir = workspaceDir.resolve(projectId);
-
-        // 确保目录存在
-        if (!projectDir.toFile().exists()) {
-            throw new BusinessException(ErrorCode.PROJECT_NOT_EXIST, "项目不存在");
-        }
-
-        return projectDir;
+        return workspaceDir;
     }
 
     private Map<String, String> setupThirdModelEnvironmentMap() {

@@ -53,20 +53,6 @@ public class ProjectService {
             }
         }
 
-        // 确定项目ID - 使用现有项目或生成新项目
-        String projectId;
-        if (StringUtils.isNotBlank(request.getProjectName())) {
-            // 验证项目是否存在
-            Path projectDir = getProjectDirectory(request.getProjectName());
-            if (!Files.exists(projectDir)) {
-                throw new BusinessException("项目不存在: " + request.getProjectName());
-            } else {
-                log.info("继续在现有项目上操作，项目名: {}, 会话ID: {}", request.getProjectName(), sessionId);
-            }
-        } else {
-            // 生成新项目ID
-            throw new BusinessException("请提供项目名");
-        }
 
         log.info("执行项目操作，项目名: {}, 会话ID: {}, 提示: {}",
                 request.getProjectName(), sessionId, request.getPrompt());

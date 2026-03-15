@@ -10,6 +10,8 @@ RUN mkdir -p /home/goodluckjava/.m2
 # 拷贝 Maven settings.xml
 ADD maven/conf/settings.xml /home/goodluckjava/.m2/settings.xml
 
+COPY skills/ /home/goodluckjava/.claude/skills/
+
 # Add application jar
 
 ADD goodluck-claude-service/target/bootstrap.jar /deployments/app.jar
