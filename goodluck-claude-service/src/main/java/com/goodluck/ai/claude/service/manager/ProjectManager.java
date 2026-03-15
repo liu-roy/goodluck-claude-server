@@ -6,6 +6,7 @@ import com.goodluck.ai.claude.service.config.ClaudeProperties;
 import com.goodluck.ai.claude.service.config.IgnoreModifyConfig;
 import com.goodluck.ai.claude.service.constant.ErrorCode;
 import com.goodluck.ai.claude.api.model.resp.*;
+import com.goodluck.ai.claude.api.model.resp.FileTreeNode;
 import com.goodluck.ai.claude.api.model.resp.ProjectInfoResponse;
 import com.goodluck.ai.claude.service.service.ClaudeExecutorService;
 import com.goodluck.ai.claude.service.service.GitService;
@@ -70,6 +71,35 @@ public class ProjectManager {
         return projectService.getFile(projectId, filePath);
     }
 
+    /**
+     * 列出所有项目目录名
+     */
+    public List<String> listProjectIds() {
+        return projectService.listProjectIds();
+    }
+
+    /**
+     * 获取项目文件树
+     */
+    public List<FileTreeNode> getFileTree(String projectId) throws IOException {
+        return projectService.getFileTree(projectId);
+    }
+
+    public void saveFileContent(String projectId, String filePath, String content) throws Exception {
+        projectService.saveFileContent(projectId, filePath, content);
+    }
+
+    public String getCurrentBranch(String projectId) {
+        return projectService.getCurrentBranch(projectId);
+    }
+
+    public List<String> listBranches(String projectId) {
+        return projectService.listBranches(projectId);
+    }
+
+    public boolean checkoutBranch(String projectId, String branchName) {
+        return projectService.checkoutBranch(projectId, branchName);
+    }
 
     /**
      * 获取项目目录

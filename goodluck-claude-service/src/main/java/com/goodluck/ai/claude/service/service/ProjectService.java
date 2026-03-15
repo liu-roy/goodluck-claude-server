@@ -3,6 +3,7 @@ package com.goodluck.ai.claude.service.service;
 import com.goodluck.ai.claude.service.config.ClaudeProperties;
 import com.goodluck.ai.claude.api.model.req.CodeGenerationRequest;
 import com.goodluck.ai.claude.api.model.req.GitCloneRequest;
+import com.goodluck.ai.claude.api.model.resp.FileTreeNode;
 import com.goodluck.ai.claude.api.model.resp.ProjectInfoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goodluck.common.exception.BusinessException;
@@ -13,8 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 项目管理服务
@@ -34,6 +38,9 @@ public class ProjectService {
 
     @Autowired
     private GitService gitService;
+
+    @Autowired
+    private SessionService sessionService;
 
     /**
      * 校验项目是否存在（工作目录下是否存在对应目录）
@@ -96,35 +103,35 @@ public class ProjectService {
             throw new BusinessException("项目不存在: " + request.getProjectName() + "，请先通过 /projects/clone 接口克隆仓库");
         }
         // 确保有有效的 sessionId (UUID格式)
-        boolean isNewSession = true;
         String sessionId = request.getSessionId();
         if (StringUtils.isBlank(sessionId)) {
-            // 生成新的UUID格式的sessionId
             sessionId = UUID.randomUUID().toString();
             request.setSessionId(sessionId);
             log.info("未提供sessionId，自动生成: {}", sessionId);
         } else {
-            // 验证是否为有效的UUID格式
             try {
                 UUID.fromString(sessionId);
-                isNewSession = false;
             } catch (IllegalArgumentException e) {
                 throw new BusinessException("无效的sessionId: " + sessionId);
             }
         }
 
+        // 该 session 在本项目中是否已用 --session-id 创建过对话：否则本次用 --session-id，是则用 --resume
+        boolean isNewSession = !sessionService.hasConversationStarted(sessionId, request.getProjectName());
 
-        log.info("执行项目操作，项目名: {}, 会话ID: {}, 提示: {}",
-                request.getProjectName(), sessionId, request.getPrompt());
+        log.info("执行项目操作，项目名: {}, 会话ID: {}, 是否新会话: {}, 提示: {}",
+                request.getProjectName(), sessionId, isNewSession, request.getPrompt());
+
+        sessionService.recordUsage(sessionId, request.getProjectName());
 
         try {
 
-            // 执行 Claude 命令，传入会话ID、系统提示和是否为新项目标识
+            // 执行 Claude 命令，传入会话ID、系统提示和是否为新会话标识
             ClaudeExecutorService.CommandResult result = claudeExecutorService.executeCommand(
                     request.getPrompt(),
                     request.getProjectName(),
                     claudeProperties.getTimeout(),
-                    request.getSessionId(),
+                    sessionId,
                     claudeProperties.getGenerateCodePrompt(),
                     isNewSession);
 
@@ -132,9 +139,18 @@ public class ProjectService {
             ProjectInfoResponse projectInfo = new ProjectInfoResponse();
             projectInfo.setStatus(result.isSuccess() ? "SUCCESS" : "FAILED");
             projectInfo.setSessionId(sessionId);
+            String assistantContent = result.getOutput();
+            if (result.getError() != null && !result.getError().isEmpty()) {
+                assistantContent = (assistantContent != null ? assistantContent + "\n" : "") + "[stderr]\n" + result.getError();
+            }
+            projectInfo.setAssistantMessage(assistantContent);
             if (!result.isSuccess()) {
                 projectInfo.setError(result.getError());
+            } else {
+                sessionService.markConversationStarted(sessionId, request.getProjectName());
             }
+            sessionService.appendMessage(sessionId, request.getProjectName(), "user", request.getPrompt());
+            sessionService.appendMessage(sessionId, request.getProjectName(), "assistant", assistantContent != null ? assistantContent : "");
 
             log.info("代码项目生成完成，项目ID: {}, 会话ID: {}, 状态: {}",
                     request.getProjectName(), sessionId, projectInfo.getStatus());
@@ -227,10 +243,125 @@ public class ProjectService {
     }
 
     /**
+     * 列出工作目录下所有项目（子目录名）
+     */
+    public List<String> listProjectIds() {
+        Path workspace = Paths.get(claudeProperties.getWorkspaceDir());
+        if (!Files.exists(workspace) || !Files.isDirectory(workspace)) {
+            return Collections.emptyList();
+        }
+        try (Stream<Path> stream = Files.list(workspace)) {
+            return stream
+                    .filter(Files::isDirectory)
+                    .filter(p -> !p.getFileName().toString().startsWith("."))
+                    .map(p -> p.getFileName().toString())
+                    .sorted()
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            log.warn("列举项目失败", e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * 获取项目文件树（相对路径，排除 .git、target 等）
+     */
+    public List<FileTreeNode> getFileTree(String projectId) throws IOException {
+        Path projectDir = getProjectDirectory(projectId);
+        if (!Files.exists(projectDir) || !Files.isDirectory(projectDir)) {
+            return Collections.emptyList();
+        }
+        return buildTree(projectDir, projectDir, "");
+    }
+
+    private static final Set<String> IGNORE_DIRS = Set.of(".git", "node_modules", "target", ".idea", ".vscode", ".cursor", "__pycache__", ".history");
+
+    private List<FileTreeNode> buildTree(Path projectRoot, Path dir, String relativePath) throws IOException {
+        List<FileTreeNode> list = new ArrayList<>();
+        try (Stream<Path> stream = Files.list(dir)) {
+            List<Path> entries = stream.sorted((a, b) -> {
+                boolean aDir = Files.isDirectory(a);
+                boolean bDir = Files.isDirectory(b);
+                if (aDir != bDir) return aDir ? 1 : -1;
+                return a.getFileName().toString().compareToIgnoreCase(b.getFileName().toString());
+            }).collect(Collectors.toList());
+
+            for (Path p : entries) {
+                String name = p.getFileName().toString();
+                if (name.startsWith(".") && !".gitignore".equals(name)) continue;
+                if (Files.isDirectory(p) && IGNORE_DIRS.contains(name)) continue;
+
+                String path = relativePath.isEmpty() ? name : relativePath + "/" + name;
+                if (Files.isDirectory(p)) {
+                    list.add(FileTreeNode.builder()
+                            .name(name)
+                            .path(path)
+                            .dir(true)
+                            .children(buildTree(projectRoot, p, path))
+                            .build());
+                } else {
+                    list.add(FileTreeNode.builder()
+                            .name(name)
+                            .path(path)
+                            .dir(false)
+                            .children(null)
+                            .build());
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * 保存文件内容（覆盖写入，仅支持文本）
+     */
+    public void saveFileContent(String projectId, String filePath, String content) throws IOException {
+        Path projectDir = getProjectDirectory(projectId);
+        Path fullPath = projectDir.resolve(filePath).normalize();
+        if (!fullPath.startsWith(projectDir.normalize())) {
+            throw new SecurityException("非法文件路径");
+        }
+        Files.createDirectories(fullPath.getParent());
+        Files.writeString(fullPath, content != null ? content : "", StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 获取当前分支
+     */
+    public String getCurrentBranch(String projectId) {
+        Path projectDir = getProjectDirectory(projectId);
+        if (!Files.exists(projectDir) || !Files.isDirectory(projectDir.resolve(".git"))) {
+            return null;
+        }
+        return gitService.getCurrentBranch(projectDir);
+    }
+
+    /**
+     * 列出本地分支
+     */
+    public List<String> listBranches(String projectId) {
+        Path projectDir = getProjectDirectory(projectId);
+        if (!Files.exists(projectDir) || !Files.isDirectory(projectDir.resolve(".git"))) {
+            return Collections.emptyList();
+        }
+        return gitService.listBranches(projectDir);
+    }
+
+    /**
+     * 切换分支
+     */
+    public boolean checkoutBranch(String projectId, String branchName) {
+        Path projectDir = getProjectDirectory(projectId);
+        if (!Files.exists(projectDir)) {
+            return false;
+        }
+        return gitService.checkout(projectDir, branchName);
+    }
+
+    /**
      * 获取项目目录
      */
     private Path getProjectDirectory(String projectId) {
         return Paths.get(claudeProperties.getWorkspaceDir()).resolve(projectId);
     }
-
 }

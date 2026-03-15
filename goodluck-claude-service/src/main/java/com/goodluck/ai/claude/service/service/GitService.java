@@ -89,11 +89,19 @@ public interface GitService {
 
     /**
      * 获取当前分支名
-     * 
+     *
      * @param repoDir 仓库目录
      * @return 当前分支名，失败返回null
      */
     String getCurrentBranch(Path repoDir);
+
+    /**
+     * 列出本地分支
+     *
+     * @param repoDir 仓库目录
+     * @return 分支名称列表，失败返回空列表
+     */
+    List<String> listBranches(Path repoDir);
 
     /**
      * 获取仓库状态

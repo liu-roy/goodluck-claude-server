@@ -8,11 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.List;
 
-/**
- * 项目信息DTO
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,7 +16,7 @@ import java.util.List;
 @Schema(description = "项目信息")
 public class ProjectInfoResponse {
 
-    @Schema(description = "项目名称", example = "Java Hello World")
+    @Schema(description = "项目名称")
     private String projectName;
 
     @Schema(description = "项目描述")
@@ -34,16 +30,18 @@ public class ProjectInfoResponse {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date lastModified;
 
-    @Schema(description = "生成状态", example = "SUCCESS")
+    @Schema(description = "生成状态")
     private String status;
 
-    @Schema(description = "错误信息（如果有）")
+    @Schema(description = "错误信息")
     private String error;
 
-    @Schema(description = "会话ID（UUID格式）", example = "550e8400-e29b-41d4-a716-446655440000")
+    @Schema(description = "会话ID")
     private String sessionId;
 
     @Schema(description = "Git提交ID")
     private String commitId;
 
+    @Schema(description = "Claude 的回复内容")
+    private String assistantMessage;
 }

@@ -4,11 +4,34 @@ spring:
   profiles:
     active: docker
 
+  # H2 数据源
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:file:./data/claude-session
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+
+  # H2 控制台（调试用，生产可关）
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
   # Jackson配置
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
+
+# MyBatis-Plus
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 
 
 # 服务器配置
