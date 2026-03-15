@@ -13,7 +13,7 @@ spring:
 
 # 服务器配置
 server:
-  port: 8080
+  port: 8081
   servlet:
     context-path: /
     encoding:
@@ -60,13 +60,10 @@ management:
 
 knife4j:
   enable: true
-  #开启生产环境屏蔽
-  #  production: false
-  #    #是否启用登录认证
-  #  basic:
-  #    enable: true
-  #    username: admin
-  #    password: 123456
+  basic:
+    enable: true
+    username: xxx
+    password: xxxxxxxx
   setting:
     language: zh_cn
 
@@ -131,8 +128,6 @@ git:
     # 是否启用自动提交
     enabled: true
     # 默认提交作者
-    author: jerry
+    author: xxxx
     # 默认提交邮箱
-    email: 1111@qq.com
-    # 默认提交消息（当用户未提供prompt时使用）
-    default-message: "AI generated code by Claude"
+    email: 1111@11.com
