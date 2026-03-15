@@ -43,123 +43,9 @@ public class ProjectController implements ProjectFeignClient {
     @Autowired
     private ClaudeProperties claudeProperties;
 
-    @PostMapping("/git-clone-init")
-    @Operation(summary = "克隆Git仓库并初始化Claude规则", description = "克隆Git仓库并执行claude init生成规则，返回sessionId")
-    @Override
-    public R<ProjectInfoResponse> gitCloneAndInit(
-            @Valid @RequestBody GitCloneRequest request) {
 
-        try {
-            log.info("收到Git克隆并初始化请求: {}", JsonUtil.toJSONString(request));
 
-            ProjectInfoResponse projectInfo = projectManager.cloneAndInitProject(request);
-            return R.success("项目初始化成功", projectInfo);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Git克隆和初始化失败", e);
-            return R.error(500, "项目初始化失败: " + e.getMessage());
-        }
-    }
 
-    @PostMapping("/git-clone")
-    @Operation(summary = "克隆Git仓库", description = "克隆Git仓库")
-    @Override
-    public R<ProjectInfoResponse> gitClone(
-            @Valid @RequestBody GitCloneRequest request) {
-
-        try {
-            log.info("收到Git克隆请求: {}", JsonUtil.toJSONString(request));
-
-            ProjectInfoResponse projectInfo = projectManager.gitClone(request);
-
-            return R.success("git clone成功", projectInfo);
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Git克隆和初始化失败", e);
-            return R.error(500, "项目初始化失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/git-branch")
-    @Operation(summary = "创建并推送新分支", description = "基于旧分支创建新分支并推送到远程仓库")
-    @Override
-    public R<ProjectInfoResponse> createGitBranch(
-            @Valid @RequestBody GitBranchRequest request) {
-
-        try {
-            log.info("收到创建分支请求: {}", JsonUtil.toJSONString(request));
-
-            ProjectInfoResponse projectInfo = projectManager.createAndPushBranch(request);
-            return R.success("创建分支成功", projectInfo);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("创建分支失败", e);
-            return R.error(500, "创建分支失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/git-reset")
-    @Operation(summary = "git 重新 reset", description = "reset到某一个提交")
-    @Override
-    public R<ProjectInfoResponse> gitReset(
-            @Valid @RequestBody GitResetRequest request) {
-
-        try {
-            log.info("收到Git重置请求: {}", JsonUtil.toJSONString(request));
-            ProjectInfoResponse projectInfo = projectManager.resetToCommit(request);
-            return R.success("Git重置成功", projectInfo);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Git重置失败", e);
-            return R.error(500, "Git重置失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/git/diff")
-    @Operation(summary = "代码差异比对", description = "本地仓库中的两次提交进行差异比对")
-    @Override
-    public R<GitDiffResponse> gitDiff(@RequestBody GitDiffRequest request) {
-        try {
-            log.info("收到比对代码差异请求: request:{}", JsonUtil.toJSONString(request));
-            GitDiffResponse response = projectManager.getLocalCommitDiff(request);
-            return R.success("比对成功", response);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("比对代码失败", e);
-            return R.error(500, "比对代码失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/claudeInit")
-    @Operation(summary = "初始化Claude rule", description = "初始化Claude rule")
-    @Override
-    public R<ProjectInfoResponse> claudeInit(
-            @Valid @RequestBody ClaudeInitRequest request) {
-
-        try {
-            log.info("收到claude初始化请求: {}", JsonUtil.toJSONString(request));
-
-            ProjectInfoResponse projectInfo = projectManager.claudeInitProject(request);
-            if ("SUCCESS".equals(projectInfo.getStatus())) {
-                log.info("Git克隆和Claude初始化成功，sessionId: {}", projectInfo.getSessionId());
-                return R.success("项目初始化成功", projectInfo);
-            } else {
-                return R.error(500, "项目初始化失败: " + projectInfo.getError());
-            }
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Git克隆和初始化失败", e);
-            return R.error(500, "项目初始化失败: " + e.getMessage());
-        }
-    }
 
     @PostMapping("/generate")
     @Operation(summary = "生成代码", description = "使用Claude AI生成代码并创建新项目")
@@ -170,7 +56,7 @@ public class ProjectController implements ProjectFeignClient {
         try {
             log.info("收到代码生成请求: {}", JsonUtil.toJSONString(request));
 
-            ProjectInfoResponse projectInfo = projectManager.generalGenerateCode(request);
+            ProjectInfoResponse projectInfo = projectManager.generateCode(request);
 
             return R.success(projectInfo);
 
@@ -182,30 +68,6 @@ public class ProjectController implements ProjectFeignClient {
         }
     }
 
-    @PostMapping("/generateSql")
-    @Operation(summary = "完成 sql 实现（弃用））", description = "完成 sql 生成")
-    @Override
-    public R<ProjectInfoResponse> generateSql(
-            @Valid @RequestBody CodeGenerationRequest request) {
-
-        try {
-            log.info("收到完成 sql请求: {}", JsonUtil.toJSONString(request));
-
-            ProjectInfoResponse projectInfo = projectManager.generateSql(request);
-
-            if ("SUCCESS".equals(projectInfo.getStatus())) {
-                return R.success("sql生成成功", projectInfo);
-            } else {
-                return R.error(500, "sql生成失败: " + projectInfo.getError());
-            }
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("sql生成失败", e);
-            return R.error(500, "sql生成失败: " + e.getMessage());
-        }
-    }
 
     @PostMapping("/delete/{projectId}")
     @Operation(summary = "删除项目", description = "删除指定的项目及其所有文件")
