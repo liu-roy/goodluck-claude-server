@@ -1,4 +1,4 @@
-package com.goodluck.ai.claude.service.service;
+package com.goodluck.ai.claude.service.service.impl;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 
 import com.goodluck.ai.claude.api.model.resp.GitDiffResponse;
+import com.goodluck.ai.claude.service.service.GitService;
 import com.goodluck.common.exception.BusinessException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -759,6 +760,28 @@ public class GitServiceImpl implements GitService {
         } catch (IOException e) {
             log.error("获取当前分支失败", e);
             return null;
+        }
+    }
+
+    /**
+     * 使用JGit列出本地分支；若需看到远程分支请先执行 fetch。
+     */
+    @Override
+    public List<String> listBranches(Path repoDir) {
+        try (Git git = openRepository(repoDir)) {
+            if (git == null)
+                return List.of();
+
+            List<Ref> refs = git.branchList().call();
+            return refs.stream()
+                    .map(Ref::getName)
+                    .filter(n -> n.startsWith("refs/heads/"))
+                    .map(n -> n.substring("refs/heads/".length()))
+                    .sorted()
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("列出分支失败", e);
+            return List.of();
         }
     }
 

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ClaudeCode 工作台</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; background: #1e1e1e; color: #d4d4d4; display: flex; flex-direction: column; }
+
+    /* ===== 顶部工具栏 ===== */
+    .toolbar { display: flex; align-items: center; gap: 14px; padding: 8px 16px; background: #252526; border-bottom: 1px solid #3c3c3c; flex-wrap: wrap; flex-shrink: 0; }
+    .toolbar label { color: #ccc; font-size: 13px; }
+    .toolbar select { min-width: 170px; padding: 5px 8px; background: #3c3c3c; color: #d4d4d4; border: 1px solid #555; border-radius: 4px; font-size: 13px; }
+    .toolbar select:focus { outline: none; border-color: #007acc; }
+    .toolbar .btn { padding: 5px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .toolbar .btn-primary { background: #0e639c; color: #fff; }
+    .toolbar .btn-primary:hover { background: #1177bb; }
+    .toolbar .btn-secondary { background: #3c3c3c; color: #ccc; border: 1px solid #555; }
+    .toolbar .btn-secondary:hover { background: #505050; color: #fff; }
+    .toolbar .group { display: flex; align-items: center; gap: 6px; }
+    .toolbar .mode-btn { padding: 5px 10px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .toolbar .mode-btn:hover { background: #505050; color: #fff; }
+    .toolbar .mode-btn.active { background: #007acc; color: #fff; border-color: #007acc; }
+
+    /* ===== 生成/对话栏 ===== */
+    .chat-bar { display: none; flex-direction: column; padding: 10px 16px; background: #252526; border-bottom: 1px solid #3c3c3c; flex-shrink: 0; gap: 8px; }
+    .chat-bar.visible { display: flex; }
+    .chat-bar .input-row { display: flex; gap: 10px; align-items: flex-start; }
+    .chat-bar textarea { flex: 1; min-height: 50px; max-height: 120px; padding: 8px; background: #3c3c3c; color: #d4d4d4; border: 1px solid #555; border-radius: 4px; font-size: 13px; resize: vertical; }
+    .chat-bar textarea:focus { outline: none; border-color: #007acc; }
+    .chat-bar .btn-send { padding: 8px 18px; background: #0e639c; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; align-self: flex-start; white-space: nowrap; }
+    .chat-bar .btn-send:hover { background: #1177bb; }
+    .chat-bar .btn-send:disabled { opacity: .5; cursor: not-allowed; }
+    .chat-bar .status { font-size: 12px; color: #888; white-space: pre-wrap; max-height: 80px; overflow-y: auto; }
+    .chat-bar .status.ok { color: #4ec9b0; }
+    .chat-bar .status.err { color: #f48771; }
+
+    /* ===== 对话历史 ===== */
+    .chat-history { max-height: 260px; overflow-y: auto; border: 1px solid #3c3c3c; border-radius: 4px; background: #1e1e1e; }
+    .chat-history .title { padding: 5px 10px; font-size: 12px; color: #888; border-bottom: 1px solid #3c3c3c; }
+    .chat-history .list { padding: 6px 10px; }
+    .chat-history .msg { margin-bottom: 8px; font-size: 12px; }
+    .chat-history .msg .role { font-weight: 600; }
+    .chat-history .msg .role.user { color: #569cd6; }
+    .chat-history .msg .role.assistant { color: #4ec9b0; }
+    .chat-history .msg .time { font-size: 11px; color: #666; margin-left: 6px; }
+    .chat-history .msg .body { white-space: pre-wrap; word-break: break-all; color: #d4d4d4; padding: 4px 0; }
+    .chat-history .empty { padding: 10px; font-size: 12px; color: #666; }
+
+    /* ===== 主区域 ===== */
+    .main { display: flex; flex: 1; min-height: 0; }
+
+    /* 文件树 */
+    .tree-panel { width: 280px; min-width: 200px; overflow: auto; background: #252526; border-right: 1px solid #3c3c3c; padding: 8px 0; }
+    .tree-panel .placeholder { padding: 16px; color: #888; }
+    .tree-item { padding: 4px 12px; cursor: pointer; white-space: nowrap; border-radius: 4px; }
+    .tree-item.dir { display: block; padding-left: 0; }
+    .tree-item.dir .row { display: flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 4px; }
+    .tree-item.dir:hover .row { background: #2a2d2e; }
+    .tree-item.file { display: flex; align-items: center; gap: 6px; padding-left: 12px; }
+    .tree-item.file:hover { background: #2a2d2e; }
+    .tree-item .icon { font-size: 16px; width: 18px; text-align: center; flex-shrink: 0; }
+    .tree-item.dir .icon { color: #e8ab53; }
+    .tree-item.file .icon { color: #9cdcfe; }
+    .tree-item.dir.collapsed .tree-children { display: none; }
+    .tree-item.dir .arrow { margin-right: 2px; transition: transform .15s; flex-shrink: 0; }
+    .tree-item.dir.collapsed .arrow { transform: rotate(-90deg); }
+    .tree-children { margin-left: 12px; }
+
+    /* 内容区 */
+    .content-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #1e1e1e; }
+    .content-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #252526; border-bottom: 1px solid #3c3c3c; color: #888; font-size: 12px; gap: 12px; }
+    .content-toolbar .path { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .content-toolbar .actions { display: none; gap: 6px; }
+    .content-toolbar .actions button { padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .content-toolbar .actions .save-btn { background: #0e639c; color: #fff; }
+    .content-toolbar .actions .cancel-btn { background: #555; color: #ccc; }
+    .content-body { flex: 1; overflow: auto; padding: 16px; }
+    .content-body pre { margin: 0; white-space: pre-wrap; word-break: break-all; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.5; }
+    .content-body textarea.editor { width: 100%; height: 100%; min-height: 200px; padding: 12px; background: #1e1e1e; color: #d4d4d4; border: 1px solid #3c3c3c; border-radius: 4px; font-family: Consolas, Monaco, monospace; font-size: 13px; line-height: 1.5; resize: none; }
+    .content-body textarea.editor:focus { outline: none; border-color: #007acc; }
+    .content-body .hint { color: #888; }
+    .content-body .error { color: #f48771; }
+
+    /* ===== 会话记录侧面板 ===== */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999; display: none; }
+    .overlay.open { display: block; }
+    .side-panel { position: fixed; top: 0; right: 0; width: 440px; max-width: 90vw; height: 100vh; background: #252526; border-left: 1px solid #3c3c3c; box-shadow: -4px 0 16px rgba(0,0,0,.3); z-index: 1000; display: none; flex-direction: column; }
+    .side-panel.open { display: flex; }
+    .side-panel .head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #3c3c3c; }
+    .side-panel .head h3 { font-size: 14px; color: #d4d4d4; }
+    .side-panel .head .close { padding: 4px 10px; background: transparent; color: #888; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .side-panel .head .close:hover { color: #fff; }
+    .side-panel .tip { padding: 8px 16px; font-size: 12px; color: #888; background: #1e1e1e; border-bottom: 1px solid #3c3c3c; }
+    .side-panel .body { flex: 1; overflow: auto; padding: 10px; }
+    .side-panel table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .side-panel th { text-align: left; padding: 8px; color: #888; border-bottom: 1px solid #3c3c3c; }
+    .side-panel td { padding: 8px; border-bottom: 1px solid #2d2d2d; color: #d4d4d4; word-break: break-all; cursor: pointer; }
+    .side-panel tr:hover td { background: #2a2d2e; }
+    .side-panel .btn-resume { padding: 3px 10px; font-size: 12px; background: #0e639c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    .side-panel .btn-resume:hover { background: #1177bb; }
+    .side-panel .foot { padding: 10px 16px; border-top: 1px solid #3c3c3c; }
+    .side-panel .foot .btn-refresh { padding: 5px 12px; background: #3c3c3c; color: #ccc; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .side-panel .empty { padding: 16px; color: #666; }
+  </style>
+</head>
+<body>
+
+<!-- 工具栏 -->
+<div class="toolbar">
+  <div class="group">
+    <label>项目</label>
+    <select id="selProject"><option value="">-- 选择项目 --</option></select>
+  </div>
+  <div class="group">
+    <label>会话</label>
+    <select id="selSession"><option value="">-- 选择会话 --</option></select>
+    <button class="btn btn-secondary" id="btnNewSession">新建会话</button>
+    <button class="btn btn-secondary" id="btnOpenHistory">会话记录</button>
+  </div>
+  <div class="group" id="branchGroup" style="display:none;">
+    <label>分支</label>
+    <select id="selBranch"><option value="">--</option></select>
+  </div>
+  <div class="group">
+    <button class="mode-btn active" id="btnView">查看</button>
+    <button class="mode-btn" id="btnEdit">编辑</button>
+  </div>
+</div>
+
+<!-- 生成/对话栏 -->
+<div class="chat-bar" id="chatBar">
+  <div class="input-row">
+    <textarea id="txtPrompt" placeholder="输入需求，同一会话下可多轮对话…"></textarea>
+    <button class="btn-send" id="btnSend">发送</button>
+  </div>
+  <div class="status" id="sendStatus"></div>
+  <div class="chat-history" id="chatHistory">
+    <div class="title">对话记录</div>
+    <div class="list" id="chatList"></div>
+  </div>
+</div>
+
+<!-- 会话记录侧面板 -->
+<div class="overlay" id="overlay"></div>
+<div class="side-panel" id="sidePanel">
+  <div class="head">
+    <h3>会话记录</h3>
+    <button class="close" id="btnClosePanel">关闭</button>
+  </div>
+  <div class="tip">会话持久化到文件，重启不丢失。点击「继续」可在该会话中继续对话。</div>
+  <div class="body"><table><thead><tr><th>会话ID</th><th>项目</th><th>创建</th><th>最后使用</th><th></th></tr></thead><tbody id="panelBody"></tbody></table><div class="empty" id="panelEmpty" style="display:none;">暂无会话</div></div>
+  <div class="foot"><button class="btn-refresh" id="btnRefreshPanel">刷新</button></div>
+</div>
+
+<!-- 主区域 -->
+<div class="main">
+  <div class="tree-panel" id="treePanel">
+    <div class="placeholder" id="treePlaceholder">请先选择项目</div>
+    <div id="treeRoot" style="display:none;"></div>
+  </div>
+  <div class="content-panel">
+    <div class="content-toolbar">
+      <span class="path" id="filePath">未选择文件</span>
+      <div class="actions" id="editActions">
+        <button class="save-btn" id="btnSaveFile">保存</button>
+        <button class="cancel-btn" id="btnCancelEdit">取消</button>
+      </div>
+    </div>
+    <div class="content-body" id="contentBody"><span class="hint">点击左侧文件查看内容</span></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const selProject = $('selProject'), selSession = $('selSession'), selBranch = $('selBranch');
+const branchGroup = $('branchGroup');
+const chatBar = $('chatBar'), txtPrompt = $('txtPrompt'), btnSend = $('btnSend'), sendStatus = $('sendStatus');
+const chatList = $('chatList');
+const overlay = $('overlay'), sidePanel = $('sidePanel'), panelBody = $('panelBody'), panelEmpty = $('panelEmpty');
+const treePlaceholder = $('treePlaceholder'), treeRoot = $('treeRoot');
+const filePath = $('filePath'), editActions = $('editActions'), contentBody = $('contentBody');
+const btnView = $('btnView'), btnEdit = $('btnEdit');
+
+let mode = 'view', curFile = null, curContent = '';
+
+// ===== API 工具 =====
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  const d = await r.json();
+  if (d.code !== undefined && d.code !== 200 && d.code !== 0) throw new Error(d.message || '请求失败');
+  return d;
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ===== 项目 =====
+async function loadProjects() {
+  try {
+    const d = await api('GET', '/projects/list');
+    selProject.innerHTML = '<option value="">-- 选择项目 --</option>' +
+      ((d.data||[]).map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join(''));
+  } catch(e) { selProject.innerHTML = '<option value="">加载失败</option>'; }
+}
+
+// ===== 会话 =====
+async function loadSessions() {
+  try {
+    const d = await api('GET', '/sessions');
+    const cur = selSession.value;
+    selSession.innerHTML = '<option value="">-- 选择会话 --</option>' +
+      ((d.data||[]).map(s => {
+        const label = (s.projectName ? s.projectName+' · ' : '') + (s.sessionId||'').slice(0,8) + (s.lastUsedAt ? ' · '+s.lastUsedAt : '');
+        return `<option value="${esc(s.sessionId)}">${esc(label)}</option>`;
+      }).join(''));
+    if (cur) selSession.value = cur;
+  } catch(e) { selSession.innerHTML = '<option value="">加载失败</option>'; }
+}
+
+$('btnNewSession').onclick = async () => {
+  try {
+    const d = await api('POST', '/sessions', {});
+    await loadSessions();
+    if (d.data && d.data.sessionId) selSession.value = d.data.sessionId;
+  } catch(e) { alert('新建会话失败: '+e.message); }
+};
+
+// ===== 分支 =====
+async function loadBranches(pid) {
+  branchGroup.style.display = pid ? 'flex' : 'none';
+  if (!pid) return;
+  selBranch.innerHTML = '<option value="">加载中…</option>';
+  try {
+    const [bl, bc] = await Promise.all([
+      api('GET', `/projects/${encodeURIComponent(pid)}/branches`),
+      api('GET', `/projects/${encodeURIComponent(pid)}/branch/current`)
+    ]);
+    const list = bl.data || [], cur = bc.data;
+    selBranch.innerHTML = list.length
+      ? list.map(b => `<option value="${esc(b)}"${b===cur?' selected':''}>${esc(b)}</option>`).join('')
+      : '<option value="">无分支</option>';
+  } catch(e) { selBranch.innerHTML = '<option value="">加载失败</option>'; }
+}
+selBranch.onchange = async () => {
+  const pid = selProject.value, br = selBranch.value;
+  if (!pid || !br) return;
+  try {
+    await api('POST', `/projects/${encodeURIComponent(pid)}/branch/checkout`, { branchName: br });
+    await loadTree(pid);
+  } catch(e) { alert('切换分支失败: '+e.message); }
+};
+
+// ===== 文件树 =====
+async function loadTree(pid) {
+  treePlaceholder.style.display = 'none';
+  treeRoot.style.display = 'block';
+  treeRoot.innerHTML = '<div class="placeholder">加载中…</div>';
+  try {
+    const d = await api('GET', `/projects/${encodeURIComponent(pid)}/tree`);
+    treeRoot.innerHTML = '';
+    renderTree(d.data || [], treeRoot);
+  } catch(e) { treeRoot.innerHTML = '<div class="placeholder error">'+esc(e.message)+'</div>'; }
+}
+function renderTree(nodes, parent) {
+  nodes.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'tree-item ' + (n.dir ? 'dir' : 'file');
+    if (n.dir) {
+      const row = document.createElement('div'); row.className = 'row';
+      row.innerHTML = (n.children&&n.children.length ? '<span class="arrow">▼</span>' : '') + `<span class="icon">📁</span><span>${esc(n.name)}</span>`;
+      div.appendChild(row);
+      if (n.children && n.children.length) {
+        const ch = document.createElement('div'); ch.className = 'tree-children';
+        renderTree(n.children, ch);
+        div.appendChild(ch);
+        row.onclick = () => div.classList.toggle('collapsed');
+      }
+    } else {
+      div.innerHTML = `<span class="icon">📄</span><span>${esc(n.name)}</span>`;
+      div.onclick = e => { e.stopPropagation(); openFile(n.path); };
+    }
+    parent.appendChild(div);
+  });
+}
+
+// ===== 文件查看/编辑 =====
+async function openFile(path) {
+  const pid = selProject.value; if (!pid) return;
+  curFile = path; filePath.textContent = path;
+  contentBody.innerHTML = '<span class="hint">加载中…</span>';
+  editActions.style.display = 'none';
+  try {
+    const d = await api('GET', `/projects/files/getContent?projectId=${encodeURIComponent(pid)}&filePath=${encodeURIComponent(path)}`);
+    curContent = typeof d.data === 'string' ? d.data : '';
+    showContent();
+  } catch(e) { contentBody.innerHTML = '<span class="error">'+esc(e.message)+'</span>'; }
+}
+function showContent() {
+  if (!curFile) return;
+  if (mode === 'edit') {
+    contentBody.innerHTML = '';
+    const ta = document.createElement('textarea'); ta.className = 'editor'; ta.value = curContent;
+    contentBody.appendChild(ta);
+    editActions.style.display = 'flex';
+  } else {
+    contentBody.innerHTML = '<pre>'+esc(curContent)+'</pre>';
+    editActions.style.display = 'none';
+  }
+}
+function setMode(m) {
+  mode = m;
+  btnView.classList.toggle('active', m==='view');
+  btnEdit.classList.toggle('active', m==='edit');
+  if (curFile) showContent();
+}
+btnView.onclick = () => setMode('view');
+btnEdit.onclick = () => setMode('edit');
+$('btnSaveFile').onclick = async () => {
+  const pid = selProject.value; if (!pid || !curFile) return;
+  const ta = contentBody.querySelector('textarea.editor');
+  try {
+    await api('PUT', '/projects/files/content', { projectId: pid, filePath: curFile, content: ta ? ta.value : '' });
+    curContent = ta ? ta.value : '';
+    setMode('view');
+  } catch(e) { alert('保存失败: '+e.message); }
+};
+$('btnCancelEdit').onclick = () => setMode('view');
+
+// ===== 对话历史加载 =====
+async function loadMessages() {
+  const sid = selSession.value, pid = selProject.value;
+  chatList.innerHTML = '';
+  if (!sid || !pid) { chatList.innerHTML = '<div class="empty">选择项目和会话后显示</div>'; return; }
+  try {
+    const d = await api('GET', `/sessions/messages?sessionId=${encodeURIComponent(sid)}&projectName=${encodeURIComponent(pid)}`);
+    const list = d.data || [];
+    if (!list.length) { chatList.innerHTML = '<div class="empty">暂无对话</div>'; return; }
+    list.forEach(m => {
+      const div = document.createElement('div'); div.className = 'msg';
+      div.innerHTML = `<span class="role ${esc(m.role)}">${m.role==='user'?'我':'Claude'}</span><span class="time">${esc(m.time||'')}</span><div class="body">${esc(m.content||'')}</div>`;
+      chatList.appendChild(div);
+    });
+    chatList.scrollTop = chatList.scrollHeight;
+  } catch(e) { chatList.innerHTML = '<div class="empty error">加载失败</div>'; }
+}
+
+// ===== 发送（生成/继续对话）=====
+btnSend.onclick = async () => {
+  const pid = selProject.value, sid = selSession.value || undefined, prompt = (txtPrompt.value||'').trim();
+  if (!pid) { sendStatus.textContent = '请先选择项目'; sendStatus.className = 'status err'; return; }
+  if (!prompt) { sendStatus.textContent = '请输入需求'; sendStatus.className = 'status err'; return; }
+  btnSend.disabled = true;
+  sendStatus.textContent = '请求中…'; sendStatus.className = 'status';
+  try {
+    const d = await api('POST', '/projects/generate', { projectName: pid, prompt, sessionId: sid || null });
+    const data = d.data || {};
+    if (data.sessionId && !selSession.value) { await loadSessions(); selSession.value = data.sessionId; }
+    if (data.status === 'SUCCESS') {
+      sendStatus.className = 'status ok';
+      sendStatus.textContent = data.assistantMessage ? 'Claude:\n'+data.assistantMessage : '生成成功';
+      loadSessions(); loadTree(pid); loadMessages();
+      txtPrompt.value = '';
+    } else {
+      sendStatus.className = 'status err';
+      sendStatus.textContent = data.error || data.assistantMessage || '请求失败';
+    }
+  } catch(e) { sendStatus.textContent = '失败: '+e.message; sendStatus.className = 'status err'; }
+  btnSend.disabled = false;
+};
+
+// ===== 项目/会话切换 =====
+selProject.onchange = () => {
+  const pid = selProject.value;
+  curFile = null; filePath.textContent = '未选择文件';
+  contentBody.innerHTML = '<span class="hint">点击左侧文件查看内容</span>';
+  editActions.style.display = 'none';
+  sendStatus.textContent = '';
+  chatBar.classList.toggle('visible', !!pid);
+  if (!pid) {
+    treePlaceholder.style.display = 'block'; treeRoot.style.display = 'none';
+    branchGroup.style.display = 'none';
+    return;
+  }
+  loadTree(pid); loadBranches(pid); loadMessages();
+};
+selSession.onchange = () => loadMessages();
+
+// ===== 会话记录侧面板 =====
+$('btnOpenHistory').onclick = () => { overlay.classList.add('open'); sidePanel.classList.add('open'); renderPanel(); };
+$('btnClosePanel').onclick = closePanel;
+overlay.onclick = closePanel;
+function closePanel() { overlay.classList.remove('open'); sidePanel.classList.remove('open'); }
+
+async function renderPanel() {
+  panelBody.innerHTML = ''; panelEmpty.style.display = 'none';
+  try {
+    const d = await api('GET', '/sessions');
+    const list = d.data || [];
+    if (!list.length) { panelEmpty.style.display = 'block'; return; }
+    list.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${esc((s.sessionId||'').slice(0,8)+'…')}</td><td>${esc(s.projectName||'—')}</td><td>${esc(s.createdAt||'—')}</td><td>${esc(s.lastUsedAt||'—')}</td><td><button class="btn-resume">继续</button></td>`;
+      tr.querySelector('.btn-resume').onclick = e => { e.stopPropagation(); resumeSession(s); };
+      tr.onclick = () => resumeSession(s);
+      panelBody.appendChild(tr);
+    });
+  } catch(e) { panelEmpty.style.display = 'block'; panelEmpty.textContent = '加载失败'; }
+}
+function resumeSession(s) {
+  selSession.value = s.sessionId || '';
+  if (s.projectName) { selProject.value = s.projectName; selProject.dispatchEvent(new Event('change')); }
+  closePanel(); txtPrompt.focus();
+}
+$('btnRefreshPanel').onclick = () => { renderPanel(); loadSessions(); };
+
+// ===== 初始化 =====
+loadProjects(); loadSessions();
+</script>
+</body>
+</html>
