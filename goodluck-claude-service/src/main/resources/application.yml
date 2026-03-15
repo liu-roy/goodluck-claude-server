@@ -112,8 +112,8 @@ goodluck:
     jwt-secret: goodluck-claude-server-jwt-secret-2026
     whitelist: /actuator/**,/error,/swagger-ui/**,/swagger-ui.html,/swagger-resources/**,/v3/api-docs/**,/doc.html,/webjars/**,/login,/login.html,/workspace.html,/favicon.ico,/h2-console/**
     users:
-      - username: admin
-        password: admin123
+      - username: xxx
+        password: xxxxx
 
 # Claude配置
 claude:
@@ -126,16 +126,14 @@ claude:
     http: http://127.0.0.1:7897
     https: http://127.0.0.1:7897
     socks: socks5://127.0.0.1:7897
-  claudeImplTodoPrompt: classpath:prompts/claude-serviceimpl-todo.md
-  claudeGenerateSqlPrompt: classpath:prompts/claude-generate-sql.md
   enableThirdModel: true
   thirdModelType: claude
-#  apiKey: changeme-replace-via-env-or-secrets
+#  apiKey: xxxxx
 #  baseUrl: https://dashscope.aliyuncs.com/apps/anthropic
 #  model: qwen3-coder-plus
 #  fastModel: qwen3-coder-plus
-  apiKey: changeme-replace-via-env-or-secrets
-  baseUrl: https://4sapi.com
+  apiKey: xxxxxx
+  baseUrl: https://4s1111api.com
   model: claude-opus-4-6
   fastModel: claude-opus-4-6
 
@@ -144,7 +142,7 @@ claude:
 # GitLab配置
 gitlab:
   # GitLab服务器地址
-  host: https://hgit.goodluck.net/
+  host: https://git.goodluck.net/
   # GitLab访问令牌（请通过环境变量 GITLAB_ACCESS_TOKEN 配置）
   access-token: ${GITLAB_ACCESS_TOKEN:}
   # 默认组ID
