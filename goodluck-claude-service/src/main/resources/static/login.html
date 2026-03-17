@@ -134,9 +134,10 @@ function hideError() {
   errorMsg.classList.remove('visible');
 }
 
-if (localStorage.getItem('token')) {
-  location.href = '/workspace.html';
-}
+// 使用 Cookie 鉴权：请求需登录的接口，200 视为已登录并跳转工作台
+fetch('/projects/list', { method: 'GET', credentials: 'include' })
+  .then(r => { if (r.ok) location.href = '/workspace.html'; })
+  .catch(() => {});
 
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -156,6 +157,7 @@ loginForm.addEventListener('submit', async (e) => {
   try {
     const resp = await fetch('/login', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
@@ -171,16 +173,13 @@ loginForm.addEventListener('submit', async (e) => {
       return;
     }
 
-    const data = await resp.json();
-    const token = data.token || (data.data && data.data.token);
-    if (!token) {
-      showError('登录响应异常，未获取到 Token');
-      return;
+    const data = await resp.json().catch(() => ({}));
+    if (data.userCode !== undefined || (data.data && data.data.userCode !== undefined)) {
+      localStorage.setItem('userCode', data.userCode || data.data?.userCode || username);
     }
-
-    localStorage.setItem('token', token);
-    localStorage.setItem('userCode', data.userCode || data.data?.userCode || username);
-    localStorage.setItem('userName', data.userName || data.data?.userName || username);
+    if (data.userName !== undefined || (data.data && data.data.userName !== undefined)) {
+      localStorage.setItem('userName', data.userName || data.data?.userName || username);
+    }
 
     location.href = '/workspace.html';
   } catch (err) {

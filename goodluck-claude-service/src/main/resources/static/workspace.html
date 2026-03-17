@@ -220,7 +220,8 @@
   </div>
   <div class="group" id="branchGroup" style="display:none;">
     <label>分支</label>
-    <select id="selBranch"><option value="">--</option></select>
+    <select id="selBranch"><option value="">-- 加载本地分支 --</option></select>
+    <button class="btn btn-secondary" id="btnRefreshBranches" type="button" title="重新获取本地分支列表">刷新</button>
   </div>
   <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
     <span style="font-size:12px; color:#888;" id="userLabel"></span>
@@ -286,7 +287,7 @@
       </div>
       <div class="chat-input-area">
         <div class="chat-input-wrap" id="inputWrap">
-          <textarea id="txtPrompt" rows="1" placeholder="输入需求，按 Enter 发送…"></textarea>
+          <textarea id="txtPrompt" rows="1" placeholder="输入需求，按 Enter 发送（Shift+Enter 换行）…"></textarea>
           <button class="send-btn" id="btnSend" title="发送">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -323,23 +324,35 @@ let curFile = null, curContent = '', editMode = false;
 let isSending = false;
 let allFiles = [];
 
-const _token = localStorage.getItem('token');
-if (!_token) { location.href = '/login.html'; }
+// 使用 Cookie 鉴权：请求需登录的接口，401 或失败则跳转登录
+const authCheck = fetch('/projects/list', { method: 'GET', credentials: 'include' })
+  .then(r => {
+    if (r.status === 401) { location.href = '/login.html'; return null; }
+    return r;
+  })
+  .catch(() => { location.href = '/login.html'; return null; });
 
 // ===== API =====
 async function api(method, path, body) {
-  const token = localStorage.getItem('token');
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (token) opts.headers['access-token'] = token;
+  const authRes = await authCheck;
+  if (authRes === null) return;
+  const opts = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
   if (body !== undefined) opts.body = JSON.stringify(body);
   const r = await fetch(path, opts);
-  if (r.status === 401) { localStorage.removeItem('token'); location.href = '/login.html'; return; }
+  if (r.status === 401) { location.href = '/login.html'; return; }
   const d = await r.json();
   if (d.code !== undefined && d.code !== 200 && d.code !== 0) throw new Error(d.message || '请求失败');
   return d;
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-function logout() { localStorage.clear(); location.href = '/login.html'; }
+async function logout() {
+  try {
+    await fetch('/logout', { method: 'POST', credentials: 'include' });
+  } finally {
+    localStorage.clear();
+    location.href = '/login.html';
+  }
+}
 
 // ===== Tab =====
 function switchTab(tab) {
@@ -430,7 +443,7 @@ $('btnNewSession').onclick = async () => {
   } catch(e) { alert('新建会话失败: '+e.message); }
 };
 
-// ===== 分支 =====
+// ===== 分支（从本地 Git 仓库获取） =====
 async function loadBranches(pid) {
   branchGroup.style.display = pid ? 'flex' : 'none';
   if (!pid) return;
@@ -440,19 +453,24 @@ async function loadBranches(pid) {
       api('GET', `/projects/${encodeURIComponent(pid)}/branches`),
       api('GET', `/projects/${encodeURIComponent(pid)}/branch/current`)
     ]);
-    const list = bl.data || [], cur = bc.data;
+    const list = Array.isArray(bl.data) ? bl.data : (Array.isArray(bl) ? bl : []);
+    const cur = bc && (bc.data != null) ? bc.data : null;
     selBranch.innerHTML = list.length
-      ? list.map(b => `<option value="${esc(b)}"${b===cur?' selected':''}>${esc(b)}</option>`).join('')
-      : '<option value="">无分支</option>';
-  } catch(e) { selBranch.innerHTML = '<option value="">加载失败</option>'; }
+      ? list.map(b => `<option value="${esc(b)}"${b === cur ? ' selected' : ''}>${esc(b)}</option>`).join('')
+      : '<option value="">无分支（仅 Git 仓库有）</option>';
+  } catch (e) {
+    selBranch.innerHTML = '<option value="">加载失败，点刷新重试</option>';
+    console.warn('加载分支失败', e);
+  }
 }
+$('btnRefreshBranches').onclick = () => { const p = selProject.value; if (p) loadBranches(p); };
 selBranch.onchange = async () => {
   const pid = selProject.value, br = selBranch.value;
   if (!pid || !br) return;
   try {
     await api('POST', `/projects/${encodeURIComponent(pid)}/branch/checkout`, { branchName: br });
     await loadTree(pid);
-  } catch(e) { alert('切换分支失败: '+e.message); }
+  } catch (e) { alert('切换分支失败: ' + e.message); }
 };
 
 // ===== 文件图标 =====
@@ -735,8 +753,22 @@ function autoResizeTextarea() {
   txtPrompt.style.height = Math.min(txtPrompt.scrollHeight, 120) + 'px';
 }
 txtPrompt.addEventListener('input', autoResizeTextarea);
+let _isComposing = false;
+let _lastCompositionEndAt = 0;
+txtPrompt.addEventListener('compositionstart', () => { _isComposing = true; });
+txtPrompt.addEventListener('compositionend', () => {
+  _isComposing = false;
+  _lastCompositionEndAt = Date.now();
+});
 txtPrompt.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  if (e.key !== 'Enter') return;
+  // 需求：Enter 发送（Shift+Enter 换行），但输入法选词/上屏的 Enter 不应触发发送
+  // 某些浏览器/输入法组合：上屏时 keydown Enter 触发且 isComposing=false，因此用时间窗兜底。
+  const justEndedComposition = _lastCompositionEndAt && (Date.now() - _lastCompositionEndAt <= 80);
+  if (_isComposing || e.isComposing || justEndedComposition) return;
+  if (e.shiftKey) return;
+  e.preventDefault();
+  sendMessage();
 });
 
 // ===== 项目/会话切换 =====
