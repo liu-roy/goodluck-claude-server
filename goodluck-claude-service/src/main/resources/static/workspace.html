@@ -347,7 +347,7 @@ async function api(method, path, body) {
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 async function logout() {
   try {
-    await fetch('/logout', { method: 'POST', credentials: 'include' });
+    await fetch('/user/logout', { method: 'POST', credentials: 'include' });
   } finally {
     localStorage.clear();
     location.href = '/login.html';
