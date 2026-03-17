@@ -7,7 +7,10 @@ import com.goodluck.common.resp.R;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,13 @@ public class SessionController {
 
     @PostMapping
     @Operation(summary = "新建会话")
-    public R<SessionInfoResponse> createSession() {
-        return R.success(sessionService.createSession());
+    public R<SessionInfoResponse> createSession(@Valid @RequestBody(required = false) CreateSessionRequest request) {
+        SessionInfoResponse resp = sessionService.createSession();
+        if (request != null && StringUtils.isNotBlank(request.getProjectName())) {
+            sessionService.recordUsage(resp.getSessionId(), request.getProjectName().trim());
+            resp.setProjectName(request.getProjectName().trim());
+        }
+        return R.success(resp);
     }
 
     @GetMapping
@@ -40,5 +48,10 @@ public class SessionController {
             @Parameter(description = "会话ID") @RequestParam String sessionId,
             @Parameter(description = "项目名称") @RequestParam String projectName) {
         return R.success(sessionService.getMessages(sessionId, projectName));
+    }
+
+    @Data
+    public static class CreateSessionRequest {
+        private String projectName;
     }
 }
