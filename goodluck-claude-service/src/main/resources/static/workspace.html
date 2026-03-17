@@ -421,23 +421,39 @@ async function loadProjects() {
   } catch(e) { selProject.innerHTML = '<option value="">加载失败</option>'; }
 }
 
-// ===== 会话 =====
-async function loadSessions() {
+// ===== 会话（与项目联动：选中项目后仅显示该项目会话） =====
+async function loadSessions(projectName) {
   try {
     const d = await api('GET', '/sessions');
+    const all = d && Array.isArray(d.data) ? d.data : [];
+    const pn = projectName != null ? projectName : selProject.value;
+    const list = pn ? all.filter(s => (s && s.projectName) === pn) : all;
+
     const cur = selSession.value;
-    selSession.innerHTML = '<option value="">-- 选择会话 --</option>' +
-      ((d.data||[]).map(s => {
-        const label = (s.projectName ? s.projectName+' · ' : '') + (s.sessionId||'').slice(0,8) + (s.lastUsedAt ? ' · '+s.lastUsedAt : '');
+    const baseOption = pn ? '-- 选择会话（当前项目） --' : '-- 选择会话 --';
+    selSession.innerHTML = `<option value="">${baseOption}</option>` +
+      (list.map(s => {
+        const label = (s.projectName ? s.projectName + ' · ' : '') +
+          (s.sessionId || '').slice(0, 8) +
+          (s.lastUsedAt ? ' · ' + s.lastUsedAt : '');
         return `<option value="${esc(s.sessionId)}">${esc(label)}</option>`;
       }).join(''));
-    if (cur) selSession.value = cur;
-  } catch(e) { selSession.innerHTML = '<option value="">加载失败</option>'; }
+    if (pn && !list.length) {
+      selSession.innerHTML += `<option value="" disabled>该项目暂无会话，请点「新建会话」</option>`;
+    }
+
+    // 若当前选中会话不在过滤后的列表中，则清空；否则保留
+    if (cur && list.some(s => s && s.sessionId === cur)) selSession.value = cur;
+    else selSession.value = '';
+  } catch (e) {
+    selSession.innerHTML = '<option value="">加载失败</option>';
+  }
 }
 $('btnNewSession').onclick = async () => {
   try {
-    const d = await api('POST', '/sessions', {});
-    await loadSessions();
+    const pid = selProject.value || null;
+    const d = await api('POST', '/sessions', pid ? { projectName: pid } : {});
+    await loadSessions(pid || '');
     if (d.data && d.data.sessionId) selSession.value = d.data.sessionId;
     loadMessages(); switchTab('chat');
   } catch(e) { alert('新建会话失败: '+e.message); }
@@ -784,8 +800,10 @@ selProject.onchange = () => {
     treePlaceholder.style.display = 'block'; treeRoot.style.display = 'none';
     treeSearchWrap.style.display = 'none';
     branchGroup.style.display = 'none';
+    loadSessions('');
     return;
   }
+  loadSessions(pid);
   loadTree(pid); loadBranches(pid); loadMessages();
   switchTab('chat');
 };
