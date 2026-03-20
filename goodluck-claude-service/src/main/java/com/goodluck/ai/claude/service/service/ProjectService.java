@@ -337,7 +337,7 @@ public class ProjectService {
     }
 
     /**
-     * 列出本地分支
+     * 列出主远程分支（内部会先 fetch）；无 remote 时仅本地分支。
      */
     public List<String> listBranches(String projectId) {
         Path projectDir = getProjectDirectory(projectId);
@@ -348,7 +348,7 @@ public class ProjectService {
     }
 
     /**
-     * 切换分支
+     * 切换分支：本地已有则 checkout；否则基于远程跟踪引用创建并跟踪。
      */
     public boolean checkoutBranch(String projectId, String branchName) {
         Path projectDir = getProjectDirectory(projectId);

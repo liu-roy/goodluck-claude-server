@@ -262,7 +262,7 @@
       const cur = bc && (bc.data != null) ? bc.data : null;
       selBranch.innerHTML = list.length
         ? list.map(b => `<option value="${esc(b)}"${b === cur ? ' selected' : ''}>${esc(b)}</option>`).join('')
-        : '<option value="">无分支（仅 Git 仓库有）</option>';
+        : '<option value="">无远程分支（需已配置 remote 且可 fetch）</option>';
     } catch (e) {
       selBranch.innerHTML = '<option value="">加载失败，点刷新重试</option>';
       console.warn('加载分支失败', e);

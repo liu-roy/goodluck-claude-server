@@ -169,7 +169,7 @@ public class ProjectController implements ProjectFeignClient {
     }
 
     @GetMapping("/{projectId}/branches")
-    @Operation(summary = "分支列表", description = "列出项目本地分支")
+    @Operation(summary = "分支列表", description = "fetch 后列出主远程（优先 origin）分支；无 remote 时仅本地分支")
     public R<List<String>> listBranches(@PathVariable String projectId) {
         return R.success(projectManager.listBranches(projectId));
     }
@@ -182,7 +182,7 @@ public class ProjectController implements ProjectFeignClient {
     }
 
     @PostMapping("/{projectId}/branch/checkout")
-    @Operation(summary = "切换分支", description = "切换到指定分支")
+    @Operation(summary = "切换分支", description = "本地已有则直接切换；否则 fetch 后基于远程创建并跟踪")
     public R<Void> checkoutBranch(
             @PathVariable String projectId,
             @Valid @RequestBody CheckoutBranchRequest request) {
