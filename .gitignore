@@ -16,6 +16,8 @@
 .LSOverride
 
 ### Maven ###
+# 本地私服账号等敏感信息，勿提交
+maven/conf/settings.xml
 target/
 !**/src/main/**/target/
 !**/src/test/**/target/
