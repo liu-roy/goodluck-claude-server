@@ -39,3 +39,5 @@ run/developments/
 .env
 .env.local
 
+### Local tooling (pip -t installs, filter-repo scratch, etc.) ###
+.tools/
