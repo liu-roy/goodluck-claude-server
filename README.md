@@ -1,6 +1,8 @@
-# Goodluck Claude Code Server
+# Claude Code 自托管 API 网关（Spring Boot + Docker）— 远程调用、在线编辑、会话与 Skills
 
-基于 **Spring Boot** 的 **Claude Code CLI** 网关服务：把官方 `@anthropic-ai/claude-code` 封装在 **可容器化交付** 的运行环境中，通过 **HTTP / OpenAPI** 对外提供远程调用能力，并内置 **会话与多轮对话**、项目与工作区管理。支持在配置中切换 **Anthropic 兼容的 Claude 模型** 与 **阿里云 DashScope（通义）等第三方模型端点**。
+**仓库名：`goodluck-claude-server`** — 将官方 **`@anthropic-ai/claude-code`** 封装为可 **Docker 部署** 的 **HTTP / OpenAPI** 服务，支持 **REST 远程调用**、**多轮会话**、**浏览器工作台**（目录树 **在线查看 / 编辑 / 保存**）、内置 **Claude Code Skills**（`skills/`）。可配置 **Anthropic 兼容 Claude 模型** 与 **阿里云 DashScope（通义）等第三方端点**。
+
+> **便于检索**：自托管 Claude Code · Claude Code Server · Claude Code Docker · Claude Code REST API · Spring Boot 网关 · OpenAPI Knife4j · 阿里云 DashScope · 通义千问 代码模型 · Web IDE 工作台 · Agent Skills
 
 ---
 
@@ -9,6 +11,8 @@
 | 能力 | 说明 |
 |------|------|
 | **Claude Code 容器化** | 基础镜像内置 Node.js、全局安装 `claude-code`，运行时挂载业务 JAR，一条命令拉起完整推理环境 |
+| **在线查看与编辑代码** | 工作台 `workspace.html`：项目 / 分支 / 文件树、打开文件、**编辑模式**与**保存**（REST 读写工作区文件） |
+| **Claude Code Skills** | 仓库 `skills/` 随镜像安装到运行用户 `~/.claude/skills`，为 Claude Code 提供可编排的操作指引（如 Git、Maven 等） |
 | **远程调用** | REST API + Knife4j 文档；可被前端、脚本或其它微服务（OpenFeign）调用 |
 | **会话管理** | UUID 会话；与 Claude CLI 的 `--session-id` / `--resume` 对齐；数据落 H2，可查询历史消息 |
 | **模型可切换** | 通过 `claude.*` 配置 API Key、`baseUrl`、主模型/快速模型；示例含 Claude 官方兼容网关与阿里云 DashScope Anthropic 兼容地址 |
@@ -20,7 +24,7 @@
 ```mermaid
 flowchart LR
   subgraph clients [调用方]
-    Web[浏览器 / 工作台]
+    Web[浏览器：工作台\n树浏览 · 在线编辑保存]
     Feign[OpenFeign 微服务]
     CI[脚本 / CI]
   end
@@ -30,7 +34,7 @@ flowchart LR
     Sess[SessionService + H2]
   end
   subgraph runtime [容器内环境]
-    CLI[claude-code CLI]
+    CLI[claude-code CLI\n+ ~/.claude/skills]
     WS[工作区目录]
   end
   Web --> API
@@ -84,6 +88,33 @@ docker run --rm -p 8081:8081 \
 
 ---
 
+## 在线工作台：查看与编辑代码
+
+无需本地 IDE 即可在浏览器内管理克隆到工作区的项目：
+
+- **入口**：登录后打开 **`/workspace.html`**（静态页 + `workspace.js`）。  
+- **能力**：选择项目、**远程分支列表与切换**、左侧 **目录树** 展开、点击文件 **在线查看** 内容。  
+- **编辑与保存**：支持进入 **编辑模式**，修改后 **保存** 会通过 **`PUT /projects/files/content`** 写回服务端工作区（与 `claude.workspace-dir` 下项目目录一致）；读取使用 **`GET /projects/files/getContent`**。  
+- **配套 API**：亦可完全通过 Knife4j / 自建前端调用上述接口，实现任意「远程 IDE」形态。
+
+路径与安全策略与后端 `ProjectService` 一致（防 `..` 等非法路径）。
+
+---
+
+## Claude Code Skills
+
+[Claude Code Skills](https://docs.anthropic.com/en/docs/claude-code/skills) 以目录 + `SKILL.md` 等形式为 CLI 提供可发现的能力说明与操作约束。本仓库在 **`skills/`** 下维护若干技能包（例如 Git 操作、Maven 编译等），构建服务镜像时由 **`DockerFile`** 复制到容器内运行用户目录：
+
+```dockerfile
+COPY skills/ /home/goodluckjava/.claude/skills/
+```
+
+因此容器内执行的 `claude` 可加载这些 Skill，与你在本机 `~/.claude/skills` 的体验一致。**本地开发**时若希望行为与线上一致，可将仓库 `skills/` 同步到本机对应目录，或自行挂载进容器覆盖。
+
+新增 / 修改技能后：**重建镜像**或更新挂载目录即可生效；Skill 内容建议保持与团队规范、内网 GitLab 等环境说明同步。
+
+---
+
 ## 会话管理
 
 - **创建会话**：`POST /sessions`（可选 body 绑定 `projectName`）。  
@@ -127,16 +158,11 @@ claude:
 
 ---
 
-## 演示动图（可选）
+## 界面预览
 
-在下列路径放入 GIF 后，取消注释即可在 GitHub 首页展示（相对路径以仓库根为准）：
+以下为工作台示意：**项目选择、分支、文件树、代码阅读与在线编辑** 均在同一页完成。
 
-<p align="center">
-  <!-- <img src="docs/assets/workspace.gif" alt="工作台：项目与分支" width="720" /> -->
-  <!-- <img src="docs/assets/knife4j.gif" alt="Knife4j 远程调用" width="720" /> -->
-</p>
-
-更多说明见 [`docs/assets/README.md`](docs/assets/README.md)。
+![主界面：在线查看与编辑代码](docs/assets/main-page.png)
 
 ---
 
@@ -166,9 +192,10 @@ java -jar goodluck-claude-service/target/bootstrap.jar
 ```
 goodluck-claude-server/          # 父 POM
 ├── goodluck-claude-api/         # Feign、DTO、对外契约
-├── goodluck-claude-service/     # Spring Boot 主工程、Controller、JGit、会话持久化
+├── goodluck-claude-service/     # Spring Boot、工作台静态页、JGit、会话持久化
+├── skills/                      # Claude Code Skills（镜像内 ~/.claude/skills）
 ├── DockerFileBase               # Claude Code 基础镜像
-├── DockerFile                   # 服务镜像
+├── DockerFile                   # 服务镜像（含 skills 复制）
 └── run/                         # 容器内 run-java 脚本
 ```
 
@@ -181,4 +208,4 @@ goodluck-claude-server/          # 父 POM
 
 ---
 
-**一句话**：本仓库把 **Claude Code** 装进 **标准容器**，用 **Spring Boot** 提供 **可远程调用的 API** 与 **可查询的会话历史**，并通过配置在 **Claude 系模型** 与 **阿里云等兼容端点** 之间切换。
+**一句话**：本仓库把 **Claude Code** 装进 **标准容器**，提供 **浏览器内代码浏览与在线编辑**、可扩展的 **Skills**，以及 **可远程调用的 API**、**会话历史** 与 **Claude / 阿里云等模型** 配置切换。
