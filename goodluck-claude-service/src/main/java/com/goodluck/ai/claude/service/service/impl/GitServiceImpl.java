@@ -24,6 +24,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -31,6 +32,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.gitlab4j.api.GitLabApi;
@@ -721,22 +723,57 @@ public class GitServiceImpl implements GitService {
     }
 
     /**
-     * 使用JGit切换分支
+     * 使用JGit切换分支：本地已有则直接切换；否则 fetch 后基于远程跟踪引用创建并跟踪。
      */
     @Override
     public boolean checkout(Path repoDir, String branchName) {
+        if (StringUtils.isBlank(branchName)) {
+            return false;
+        }
         try (Git git = openRepository(repoDir)) {
-            if (git == null)
+            if (git == null) {
                 return false;
+            }
+            Repository repository = git.getRepository();
+            String remote = resolvePrimaryRemoteName(git);
+
+            if (repository.exactRef(Constants.R_HEADS + branchName) != null) {
+                git.checkout().setName(branchName).call();
+                log.info("切换到已有本地分支: {}", branchName);
+                return true;
+            }
+
+            if (remote == null) {
+                log.warn("本地无分支 {} 且未配置 remote，无法检出", branchName);
+                return false;
+            }
+
+            String remoteRefName = Constants.R_REMOTES + remote + "/" + branchName;
+            if (repository.exactRef(remoteRefName) == null) {
+                try {
+                    FetchCommand fetchCommand = git.fetch().setRemote(remote);
+                    applyGitLabCredentials(fetchCommand);
+                    fetchCommand.call();
+                } catch (GitAPIException e) {
+                    log.error("fetch 失败，无法检出远程分支: {}", branchName, e);
+                    return false;
+                }
+            }
+            if (repository.exactRef(remoteRefName) == null) {
+                log.warn("远程 {} 上不存在分支: {}", remote, branchName);
+                return false;
+            }
 
             git.checkout()
+                    .setCreateBranch(true)
                     .setName(branchName)
+                    .setStartPoint(remoteRefName)
+                    .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                     .call();
-
-            log.info("切换到分支: {}", branchName);
+            log.info("已基于 {} 创建并切换到本地分支 {}", remoteRefName, branchName);
             return true;
 
-        } catch (GitAPIException e) {
+        } catch (GitAPIException | IOException e) {
             log.error("切换分支失败: {}", branchName, e);
             return false;
         }
@@ -764,24 +801,75 @@ public class GitServiceImpl implements GitService {
     }
 
     /**
-     * 使用JGit列出本地分支；若需看到远程分支请先执行 fetch。
+     * 列出主远程上的分支（先 fetch）；无 remote 时仅列出本地分支。
      */
     @Override
     public List<String> listBranches(Path repoDir) {
         try (Git git = openRepository(repoDir)) {
-            if (git == null)
+            if (git == null) {
                 return List.of();
-
-            List<Ref> refs = git.branchList().call();
+            }
+            String remote = resolvePrimaryRemoteName(git);
+            if (remote == null) {
+                return listLocalBranchShortNames(git);
+            }
+            try {
+                FetchCommand fetchCommand = git.fetch().setRemote(remote);
+                applyGitLabCredentials(fetchCommand);
+                fetchCommand.call();
+            } catch (GitAPIException e) {
+                log.warn("fetch 失败，使用本地已缓存的远程分支引用: {}", e.getMessage());
+            }
+            String prefix = Constants.R_REMOTES + remote + "/";
+            List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call();
             return refs.stream()
                     .map(Ref::getName)
-                    .filter(n -> n.startsWith("refs/heads/"))
-                    .map(n -> n.substring("refs/heads/".length()))
+                    .filter(n -> n.startsWith(prefix))
+                    .filter(n -> !n.endsWith("/HEAD"))
+                    .map(n -> n.substring(prefix.length()))
+                    .distinct()
                     .sorted()
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("列出分支失败", e);
             return List.of();
+        }
+    }
+
+    /**
+     * 优先 origin，否则取配置中的第一个 remote。
+     */
+    private String resolvePrimaryRemoteName(Git git) {
+        try {
+            List<RemoteConfig> remotes = git.remoteList().call();
+            if (CollectionUtils.isEmpty(remotes)) {
+                return null;
+            }
+            for (RemoteConfig rc : remotes) {
+                if ("origin".equals(rc.getName())) {
+                    return "origin";
+                }
+            }
+            return remotes.get(0).getName();
+        } catch (GitAPIException e) {
+            log.warn("读取 remote 配置失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private List<String> listLocalBranchShortNames(Git git) throws GitAPIException {
+        List<Ref> refs = git.branchList().call();
+        return refs.stream()
+                .map(Ref::getName)
+                .filter(n -> n.startsWith(Constants.R_HEADS))
+                .map(n -> n.substring(Constants.R_HEADS.length()))
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    private void applyGitLabCredentials(TransportCommand<?, ?> command) {
+        if (StringUtils.isNotBlank(gitLabAccessToken)) {
+            command.setCredentialsProvider(new UsernamePasswordCredentialsProvider("oauth2", gitLabAccessToken));
         }
     }
 

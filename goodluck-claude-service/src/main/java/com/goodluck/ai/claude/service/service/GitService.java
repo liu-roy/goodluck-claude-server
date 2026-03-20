@@ -79,10 +79,10 @@ public interface GitService {
     boolean createBranch(Path repoDir, String branchName, String baseBranch);
 
     /**
-     * 切换分支
-     * 
+     * 切换分支：若本地已存在该分支则直接 checkout；否则在 fetch 后基于远程跟踪引用创建本地分支并跟踪。
+     *
      * @param repoDir    仓库目录
-     * @param branchName 分支名称
+     * @param branchName 分支名称（短名，如 main、feature/foo）
      * @return 是否成功
      */
     boolean checkout(Path repoDir, String branchName);
@@ -96,10 +96,11 @@ public interface GitService {
     String getCurrentBranch(Path repoDir);
 
     /**
-     * 列出本地分支
+     * 列出主远程（优先 origin）上的分支：先 fetch 再解析 refs/remotes/&lt;remote&gt;/*。
+     * 若无 remote 配置则退化为仅列出本地分支。
      *
      * @param repoDir 仓库目录
-     * @return 分支名称列表，失败返回空列表
+     * @return 分支短名列表，失败返回空列表
      */
     List<String> listBranches(Path repoDir);
 
